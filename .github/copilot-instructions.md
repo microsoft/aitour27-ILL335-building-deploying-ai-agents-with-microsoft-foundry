@@ -1,63 +1,27 @@
-# AI Tour 2027 repository instructions
+This is a Microsoft AI Tour session content repository.
 
-This repository is an AI Tour 2027 session template. Use the **AI Tour 2027 repository agent** for setup.
+If GUIDANCE.md exists in this repo, the repo has not yet been fully set up. When a content creator asks for help preparing the repo, read GUIDANCE.md and follow its instructions. The setup uses a **three-phase model**:
 
-## Workflows
+- **Get Started** — Session identity, learning outcomes, technologies, content owners
+- **Refine Content** — Organize session content into /docs/ and /src/, fill in Getting Started sections (can be run multiple times as content evolves)
+- **Finalize** — Final review, repo settings, slides/recordings links, delete GUIDANCE.md
 
-There are two workflows:
+When the creator asks for help, determine which phase they want to work on. You can detect this based on what's already filled in:
+- If the README still has placeholder text (BRKXXX, "Add Session Description"), start with Get Started
+- If the README has session info but content isn't organized yet, suggest Refine Content
+- If content is organized and they want to finalize, suggest Finalize
 
-- `help me initialize repo` — populate README and delivery resources with session content
-- `help me finalize repo` — clean up, validate, and prepare for publication
+Key constraints:
+- Never commit secrets, API keys, or credentials. Use environment variables.
+- Do not modify LICENSE, LICENSE-DOCS, CODE_OF_CONDUCT.md, or SECURITY.md.
+- Do not add large binary files (PowerPoint, video, recordings) to the repo. Links are fine.
+- The `_remove-before-publish/` folder is for source materials (abstracts, screenshots, notes). Its contents are gitignored — scan it for context but never try to commit files from it. Direct creators to put reference materials there, not in the repo root.
+- Use the Microsoft Learn MCP Server (configured in .vscode/mcp.json) to find relevant learn.microsoft.com links when populating resource sections.
 
-Plus:
-
-- `help me handle issues` — triage and apply safe fixes to open GitHub issues
-
-## Core rules
-
-- Never fabricate session metadata, links, or content.
-- Preserve authored content. Do not overwrite non-placeholder sections without confirmation.
-- Use sentence case for Markdown headings.
-- Use session-owner language. Announce the section being worked on. Do not narrate patches, diagnostics, or editor internals.
-- Track answers within a workflow phase. Do not re-ask questions.
-- Do not choose runtimes, install packages, scaffold implementation code, or run project test suites.
-
-## Initialize scope
-
-- Fill in README metadata: session code, title, description, learning outcomes (exactly three), technologies, content owners, delivery links.
-- Update `delivery-resources/README.md` with the deck URL, recording links, and presenter notes (the single delivery-resources file — do not create a separate presenter guide).
-- Do NOT run scripts, linters, or shell commands.
-- Do NOT delete folders.
-- Do NOT remove the "Before you're done" section.
-- For workshops/labs: attendee path is always both (guided + self-paced). Do not ask.
-- For workshops/labs: do not ask a separate live-demo question.
-- Require a public deck URL. Accept deferral but keep Initialize open until provided.
-
-## Finalize scope
-
-- Remove the "Before you're done" section and template markers.
-- Confirm which unused folders to remove.
-- Verify the repo is ready to publish by running through an inline checklist (placeholders, required README sections, delivery deck URL, relative link targets).
-- If any fail: report in plain language, propose fixes, ask permission to apply, then re-check.
-- Once all pass: remove template-only tooling (`.github/agents/`, `.github/tests/`, `.github/copilot-instructions.md`, `.github/AGENT-WORKFLOW.md`). Remove `.github/` if empty.
-- Report the repo as ready to publish.
-
-## Folder purposes
-
-- `instructions/` — attendee step-by-step guidance
-- `docs/` — supporting reference material and architecture/context
-- `delivery-resources/` — deck, recordings, presenter notes, and re-delivery material (single `README.md` file)
-- `src/`, `data/`, `infra/`, `.devcontainer/` — session-specific technical folders (optional)
-
-Attendee guidance can remain in `docs/` for intentional MkDocs or docs-site patterns when the root README links clearly to the entry point.
-
-## Session code prefixes
-
-Accept: `BRK`, `WRK`, `LAB`, `ILL`, `LTG`, `THR`, `DEM` followed by digits.
-
-## Do not
-
-- Do not close GitHub issues automatically.
-- Do not delete authored content without confirmation.
-- Do not modify validation scripts during normal workflows.
-- Do not use language like "publication blocker", "focused Markdown diagnostics", "initialization readiness", or "local hypothesis". Write for a speaker, not a QA engineer.
+### Issue Support
+If a user asks for help filing an issue, or reports a problem:
+- Check `.github/ISSUE_TEMPLATE/` to discover available issue templates
+- If templates exist, match the user's request to the best-fit template and walk them through the fields
+- If no templates exist, create a plain issue with a clear title and description
+- Check `gh label list` for available labels and apply relevant ones
+- Do not hardcode template names or labels — always discover what's available at runtime

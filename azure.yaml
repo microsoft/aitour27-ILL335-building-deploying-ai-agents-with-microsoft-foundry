@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: building-deploying-ai-agents
+requiredVersions:
+    extensions:
+        azure.ai.agents: ">=1.0.0-beta.4"
+metadata:
+    template: building-deploying-ai-agents@1.0.0
+services:
+    caldova-consumer-sentiment-agent:
+        project: src/agent
+        host: azure.ai.agent
+        language: python
+        codeConfiguration:
+            runtime: python_3_13
+            entryPoint: app.py
+            dependencyResolution: remote_build
+        kind: hosted
+        name: caldova-consumer-sentiment-agent
+        description: B2C engagement agent for Caldova that measures product sentiment and routes regulated review signals
+        protocols:
+            - protocol: responses
+              version: 2.0.0
+        environmentVariables:
+            - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
+              value: ${MODEL_DEPLOYMENT_NAME}
+        container:
+            resources:
+                cpu: "1.0"
+                memory: 2Gi
+hooks:
+    postprovision:
+        windows:
+            name: postprovision
+            kind: pwsh
+            shell: pwsh
+            run: ./scripts/postprovision.ps1
+        posix:
+            shell: sh
+            run: ./scripts/postprovision.sh

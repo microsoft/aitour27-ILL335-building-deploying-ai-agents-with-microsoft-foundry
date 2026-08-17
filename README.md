@@ -37,7 +37,7 @@ Fill in the sections below yourself, then:
 
 ### Session description
 
-Add your session description here. Keep it concise — 2-3 sentences about what attendees will learn and why it matters.
+Step into the role of an AI developer on Caldova's commercial digital and customer engagement team and build a B2C consumer sentiment analysis tool for Caldova, Microsoft's fictional global pharmaceutical company. You'll discover and provision hosted models in Microsoft Foundry, send your first inference with the Azure AI Projects SDK, build a production-quality sentiment analysis pipeline, and deploy it as a hosted agent — all without fine-tuning or managing infrastructure.
 
 ### 🚀 Getting started
 
@@ -45,33 +45,33 @@ Add your session description here. Keep it concise — 2-3 sentences about what 
 
 If you're following along during a live session:
 
-1. Step 1
-2. Step 2
-3. Open [`instructions/`](instructions/README.md) when this session includes
-   attendee step-by-step guidance
+1. Clone this repository and open it in VS Code
+2. Complete [Setup](setup/SETUP.md) to provision Azure resources and configure your environment
+3. Work through the lab modules in [`docs/`](docs/README.md), starting with [Lab 1: Discover Models](docs/lab1-discover-models.md)
 
 #### On your own
 
 If you're learning at your own pace:
 
 1. Clone this repository
-2. Set up your environment
-3. Follow the session guidance in [`instructions/`](instructions/README.md), or
-   use the linked docs-site entry point when this repository uses that pattern
+2. Follow [Setup](setup/SETUP.md) to provision Azure infrastructure with `azd` and configure your `.env`
+3. Work through the lab modules in [`docs/`](docs/README.md) — Lab 5 (model comparison) is a self-paced extension you can complete at home
 
 ### 🎯 Learning outcomes
 
 By the end of this session, you will be able to:
 
-- Outcome 1
-- Outcome 2
-- Outcome 3
+- Discover, provision, and connect to hosted models in Microsoft Foundry using the Azure AI Projects SDK and OpenAI-compatible client — going from zero to a working inference call in minutes
+- Build a production-quality consumer sentiment analysis pipeline that classifies feedback and independently routes regulated signals for human review using structured prompts and business logic
+- Deploy application logic as a hosted agent on Foundry Agent Service using the Microsoft Agent Framework and `azd deploy` — no container packaging or infrastructure management required
 
 ### 💻 Technologies used
 
-- Technology 1
-- Technology 2
-- Technology 3
+- Microsoft Foundry (hosted models, projects, and Agent Service)
+- Azure AI Projects SDK and the OpenAI Responses API
+- Microsoft Agent Framework
+- Azure Developer CLI (`azd`) and Bicep for Infrastructure-as-Code
+- Python 3.13
 
 ### 📚 Continue your learning
 
@@ -102,17 +102,12 @@ For more information, visit the [Learn MCP Server repo](https://aka.ms/learnmcp)
 
 ### 👥 Content owners
 
-<!-- TODO: Add yourself as a content owner
-1. Change the src in the image tag to {your github url}.png
-2. Change INSERT NAME HERE to your name
-3. Change the github url in the final href to your url. -->
-
 <table>
 <tr>
-    <td align="center"><a href="http://github.com/yourGitHubHandle">
-        <img src="https://github.com/yourGitHubHandle.png" width="100px;" alt="INSERT NAME HERE"/><br />
-        <sub><b>INSERT NAME HERE</b></sub></a><br />
-            <a href="https://github.com/yourGitHubHandle" title="talk">📢</a>
+    <td align="center"><a href="http://github.com/leestott">
+        <img src="https://github.com/leestott.png" width="100px;" alt="Lee Stott"/><br />
+        <sub><b>Lee Stott</b></sub></a><br />
+            <a href="https://github.com/leestott" title="talk">📢</a>
     </td>
 </tr></table>
 
