@@ -70,12 +70,14 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 
 **Core concept:** A hosted agent turns local Python code into a managed service while Foundry handles runtime infrastructure and conversation history.
 
+**Optional extension:** Generated a domain-specific dataset and evaluator rubric from the deployed agent, then compared that synthetic coverage with Caldova's curated golden regression set.
+
 ## Skills acquired
 
 **Azure & infrastructure**
 - Navigating the Foundry Toolkit for VS Code and the model catalog
 - Managing Azure resources (AI Services, RBAC, monitoring)
-- Understanding Foundry project architecture (accounts, projects, deployments, capability hosts)
+- Understanding Foundry project architecture (accounts, projects, and model deployments)
 
 **Python & AI development**
 - Authenticating with **DefaultAzureCredential** (no hardcoded keys)
@@ -90,6 +92,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 - Deploying Python code to Foundry Agent Service with `azure.yaml` and `azd deploy`
 - Invoking and monitoring agents via the `azd ai agent` CLI
 - Testing agents in the Foundry Toolkit hosted agents playground
+- Generating and running repeatable hosted-agent evaluations with `azd ai agent eval`
 
 ## Key files used by the lab
 
@@ -102,10 +105,10 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 | `src/03_model_comparison.py` | Side-by-side model evaluation |
 | `src/agent/app.py` | Hosted Agent Framework application |
 | `src/agent/requirements.txt` | Agent dependencies |
-| `src/agent/agent.yaml` | Hosted agent manifest |
-| `src/agent/Dockerfile` | Container definition for the hosted agent |
+| `src/agent/evaluation-instructions.md` | Caldova quality and safety criteria for generated evaluations |
+| `src/agent/evals/caldova-golden.jsonl` | Curated hosted-agent regression cases |
 | `.env` | Local environment configuration |
-| `azure.yaml` | azd project configuration |
+| `azure.yaml` | Foundry project, model, and direct-code hosted-agent configuration |
 
 ## Key patterns and takeaways
 
@@ -114,6 +117,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 3. **Start cheap, escalate smart.** Use a fast, cheap model for most requests and route only low-confidence cases to a more capable model.
 4. **Validate before deployment.** Test with the Agent Inspector, then validate again in the hosted-agent playground after `azd deploy`.
 5. **Keep regulated routing independent.** Sentiment and regulated review categories are separate signals -- never route on sentiment alone.
+6. **Measure changes with fixed evidence.** Generated suites discover new cases; curated golden sets make agent versions comparable.
 
 ## Next steps
 
@@ -122,6 +126,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 - **Build a multi-agent workflow** -- chain the sentiment agent with a response-drafting agent.
 - **Connect to a frontend** -- the hosted agent exposes an OpenAI-compatible REST API at `/responses`.
 - **Set up CI/CD** -- use GitHub Actions with `azd` to redeploy on every push that changes `src/agent/**`.
+- **Add an evaluation quality gate** -- run the committed golden evaluation after deployment and fail the pipeline when agreed thresholds regress.
 
 ## Thank you
 
@@ -143,4 +148,8 @@ Happy building!
 If you encountered an issue, use the repository support guidance after the lab.
 
 **Happy building!**
+
+---
+
+**Next:** [Clean up your Azure resources](../cleanup/CLEANUP.md)
 

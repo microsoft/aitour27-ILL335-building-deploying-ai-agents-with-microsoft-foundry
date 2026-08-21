@@ -48,12 +48,6 @@ param secondModelVersion string
 @description('Second model capacity')
 param secondModelCapacity int
 
-@description('Enable optional hosted-agent support infrastructure')
-param enableHostedAgents bool = false
-
-@description('Enable the capability host for agent conversations. When false and hosted agents are enabled, the capability host is not created (v2 hosted agents handle storage automatically).')
-param enableCapabilityHost bool = true
-
 // ---------------------------------------------------------------------------
 // Azure AI Services Account (Foundry) — new Foundry pattern
 // ---------------------------------------------------------------------------
@@ -163,66 +157,6 @@ resource secondModelDeployment 'Microsoft.CognitiveServices/accounts/deployments
 }
 
 // ---------------------------------------------------------------------------
-// Optional registry retained for standalone infrastructure compatibility
-// ---------------------------------------------------------------------------
-resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = if (enableHostedAgents) {
-  name: replace(aiServicesName, '-', '')
-  location: location
-  tags: tags
-  sku: {
-    name: 'Basic'
-  }
-  properties: {
-    adminUserEnabled: true
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Capability Host on Account (enables hosted compute for agents) — Optional
-// Must be at account level; the project inherits capability from the account
-// ---------------------------------------------------------------------------
-resource capabilityHost 'Microsoft.CognitiveServices/accounts/capabilityHosts@2025-10-01-preview' = if (enableHostedAgents && enableCapabilityHost) {
-  parent: aiServices
-  name: 'agents'
-  properties: {
-    capabilityHostKind: 'Agents'
-    enablePublicHostingEnvironment: true
-  }
-  dependsOn: [acr, project]
-}
-
-// ---------------------------------------------------------------------------
-// RBAC: Grant project managed identity Cognitive Services User on the account
-// ---------------------------------------------------------------------------
-var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
-
-resource projectCogServicesUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (enableHostedAgents) {
-  name: guid(aiServices.id, project.name, cognitiveServicesUserRoleId)
-  scope: aiServices
-  properties: {
-    principalId: project.identity.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRoleId)
-  }
-}
-
-// ---------------------------------------------------------------------------
-// RBAC: Grant project managed identity AcrPull on the container registry
-// ---------------------------------------------------------------------------
-var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
-resource projectAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (enableHostedAgents) {
-  name: guid(acr.id, project.name, acrPullRoleId)
-  scope: acr
-  properties: {
-    principalId: project.identity.principalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Outputs
 // ---------------------------------------------------------------------------
 output aiServicesName string = aiServices.name
@@ -231,5 +165,3 @@ output projectName string = project.name
 output projectId string = project.id
 output projectEndpoint string = project.properties.endpoints['AI Foundry API']
 output projectPrincipalId string = project.identity.principalId
-output acrName string = enableHostedAgents ? acr.name : ''
-output acrLoginServer string = enableHostedAgents ? acr!.properties.loginServer : ''

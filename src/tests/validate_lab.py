@@ -14,6 +14,7 @@ import argparse
 import importlib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -98,6 +99,8 @@ def test_file_structure():
         # Agent (Hosted Agent — direct code deployment)
         "src/agent/app.py",
         "src/agent/requirements.txt",
+        "src/agent/evaluation-instructions.md",
+        "src/agent/evals/caldova-golden.jsonl",
         # Tests
         "src/tests/TESTING.md",
         "src/tests/test_sentiment.py",
@@ -171,6 +174,32 @@ def test_json_files():
             )
     except Exception as e:
         record("sample_feedback.json structure", "FAIL", str(e))
+
+    golden_path = REPO_ROOT / "src/agent/evals/caldova-golden.jsonl"
+    try:
+        rows = [
+            json.loads(line)
+            for line in golden_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        record(
+            "caldova-golden.jsonl has 15 entries",
+            "PASS" if len(rows) == 15 else "FAIL",
+            "" if len(rows) == 15 else f"Got {len(rows)}",
+        )
+        valid_rows = all(
+            isinstance(row.get("query"), str)
+            and row["query"].strip()
+            and isinstance(row.get("expected_behavior"), str)
+            and row["expected_behavior"].strip()
+            for row in rows
+        )
+        record(
+            "caldova-golden.jsonl evaluation schema valid",
+            "PASS" if valid_rows else "FAIL",
+        )
+    except (json.JSONDecodeError, OSError) as e:
+        record("caldova-golden.jsonl valid", "FAIL", str(e))
 
 
 # =========================================================================
@@ -313,14 +342,13 @@ def test_api_and_session_content():
         if path.is_file()
         and path.suffix
         in (".md", ".py", ".bicep", ".json", ".yaml", ".yml", ".ps1", ".sh", ".sample")
-        and ".git" not in str(path)
+        and ".git" not in path.parts
         and ".venv" not in str(path)
         and path.resolve() != Path(__file__).resolve()
     ]
 
     forbidden = {
         "chat.completions": "Chat Completions API call",
-        "BRK520": "legacy BRK520 session ID",
         "Microsoft Build 2026": "legacy event name",
         "Build26": "legacy event path",
         "Get Started with Models in Microsoft Foundry": "legacy session title",
@@ -336,6 +364,60 @@ def test_api_and_session_content():
             record(f"No {label}", "FAIL", f"Found in: {', '.join(found_in[:5])}")
         else:
             record(f"No {label}", "PASS")
+
+    legacy_session_pattern = re.compile("BRK" + "520", re.IGNORECASE)
+    legacy_session_files = [
+        str(path.relative_to(REPO_ROOT))
+        for path in text_files
+        if legacy_session_pattern.search(path.read_text(encoding="utf-8", errors="ignore"))
+    ]
+    if legacy_session_files:
+        record(
+            "No retired session ID",
+            "FAIL",
+            f"Found in: {', '.join(legacy_session_files[:5])}",
+        )
+    else:
+        record("No retired session ID", "PASS")
+
+    skillable = (REPO_ROOT / "docs/skillable/skillable.md").read_text(encoding="utf-8")
+    skillable_markers = [
+        "Welcome to ILL335",
+        "caldova-consumer-sentiment-agent",
+        "azd ext install microsoft.foundry",
+        "azd up",
+        "# Part A: Test locally with the Agent Inspector",
+        "# Part B: Deploy and verify the hosted agent",
+        "# Part C: Generate an evaluation suite",
+        "azd ai agent eval generate",
+        "--out-file eval.yaml",
+        "--config eval.yaml",
+        "sample.output_text",
+    ]
+    missing_markers = [marker for marker in skillable_markers if marker not in skillable]
+    invalid_eval_path_files = [
+        str(path.relative_to(REPO_ROOT))
+        for path in text_files
+        if re.search(
+            r"--(?:out-file|config)\s+src/agent/eval",
+            path.read_text(encoding="utf-8", errors="ignore"),
+        )
+    ]
+    if missing_markers or invalid_eval_path_files:
+        details = []
+        if missing_markers:
+            details.append(f"Missing: {', '.join(missing_markers)}")
+        if invalid_eval_path_files:
+            details.append(
+                "Invalid eval paths in: " + ", ".join(invalid_eval_path_files[:5])
+            )
+        record(
+            "Skillable guide uses current ILL335 hosted-agent flow",
+            "FAIL",
+            "; ".join(details),
+        )
+    else:
+        record("Skillable guide uses current ILL335 hosted-agent flow", "PASS")
 
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     for value, label in {
@@ -364,11 +446,18 @@ def test_infra():
     print("  Section 7: Infrastructure Files")
     print("=" * 60)
 
-    # Check azure.yaml has correct hooks
+    # Check azure.yaml uses the current Foundry provider and direct-code agent model
     azure_yaml = REPO_ROOT / "azure.yaml"
     try:
         content = azure_yaml.read_text(encoding="utf-8")
-        for keyword in ["postprovision", "postprovision.ps1", "postprovision.sh"]:
+        for keyword in [
+            'azd: ">=1.27.1"',
+            "azure.ai.project",
+            "azure.ai.agent",
+            "python_3_13",
+            "version: 2.0.0",
+            "provider: microsoft.foundry",
+        ]:
             if keyword in content:
                 record(f"azure.yaml contains '{keyword}'", "PASS")
             else:
@@ -385,7 +474,6 @@ def test_infra():
             "location",
             "modelName",
             "deploySecondModel",
-            "enableHostedAgents",
             "principalId",
         ]:
             if param in content:
@@ -397,8 +485,8 @@ def test_infra():
         for output in [
             "AZURE_RESOURCE_GROUP",
             "AZURE_AI_PROJECT_ENDPOINT",
+            "FOUNDRY_PROJECT_ENDPOINT",
             "MODEL_DEPLOYMENT_NAME",
-            "AZURE_CONTAINER_REGISTRY_NAME",
         ]:
             if output in content:
                 record(f"main.bicep output: {output}", "PASS")
@@ -416,7 +504,6 @@ def test_infra():
             "AZURE_LOCATION",
             "AZURE_PRINCIPAL_ID",
             "DEPLOY_SECOND_MODEL",
-            "ENABLE_HOSTED_AGENTS",
         ]:
             if var in content:
                 record(f"parameters.json binds {var}", "PASS")
@@ -569,7 +656,8 @@ def test_cli_tools():
 
     for name, cmd in tools.items():
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15, shell=use_shell)
+            timeout = 60 if name in {"az", "azd"} else 15
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, shell=use_shell)
             if result.returncode == 0:
                 version = result.stdout.strip().split("\n")[0][:60]
                 record(f"CLI available: {name}", "PASS", version)

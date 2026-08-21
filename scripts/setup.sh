@@ -86,15 +86,17 @@ PY_VER=$($PYTHON_CMD --version 2>&1 | sed 's/Python //')
 AZD_SEMVER=$(azd version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
 if [ -z "$AZD_SEMVER" ] || ! "$PYTHON_CMD" -c \
-    'import sys; v=tuple(map(int, sys.argv[1].split("."))); sys.exit(v < (1, 28, 0))' \
+    'import sys; v=tuple(map(int, sys.argv[1].split("."))); sys.exit(v < (1, 27, 1))' \
     "$AZD_SEMVER"; then
-    fail "Azure Developer CLI 1.28.0 or later is required. Update from https://aka.ms/azure-dev/install"
+    fail "Azure Developer CLI 1.27.1 or later is required. Update from https://aka.ms/azure-dev/install"
 fi
 
 echo "  Git:       $GIT_VER"
 echo "  Azure CLI: $AZ_VER"
 echo "  azd:       $AZD_VER"
 echo "  Python:    $PY_VER"
+
+azd ext install microsoft.foundry || fail "Could not install the Microsoft Foundry azd extension bundle."
 
 # -----------------------------------------------------------------------
 step "2/10" "Installing Visual Studio Code extensions..."

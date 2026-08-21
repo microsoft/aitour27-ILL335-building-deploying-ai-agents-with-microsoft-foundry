@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 .venv/
 .azure/
+src/agent/.agent_configs/
+src/agent/datasets/
+src/agent/evaluators/
+src/agent/eval*.yaml
 *.log
 .DS_Store
 Thumbs.db

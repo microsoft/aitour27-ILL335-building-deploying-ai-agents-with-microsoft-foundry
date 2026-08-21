@@ -70,7 +70,7 @@ Write-Step "1/10" "Checking and installing prerequisites..."
 Install-IfMissing "git"    "Git"                 "winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements"              "https://git-scm.com/downloads"
 Install-IfMissing "az"     "Azure CLI"           "winget install -e --id Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements"   "https://aka.ms/installazurecli"
 Install-IfMissing "azd"    "Azure Developer CLI" "winget install -e --id Microsoft.Azd --accept-source-agreements --accept-package-agreements"        "https://aka.ms/azure-dev/install"
-Install-IfMissing "python" "Python"              "winget install -e --id Python.Python.3.12 --accept-source-agreements --accept-package-agreements"   "https://www.python.org/downloads/"
+Install-IfMissing "python" "Python"              "winget install -e --id Python.Python.3.13 --accept-source-agreements --accept-package-agreements"   "https://www.python.org/downloads/"
 
 $gitVersion = (git --version 2>$null)
 $azVersion  = (az version 2>$null | ConvertFrom-Json).'azure-cli'
@@ -81,8 +81,8 @@ if ($azdVersion -notmatch 'azd version (\d+\.\d+\.\d+)') {
     Write-Host "  ERROR: Could not determine the Azure Developer CLI version." -ForegroundColor Red
     exit 1
 }
-if ([version]$Matches[1] -lt [version]"1.28.0") {
-    Write-Host "  ERROR: Azure Developer CLI 1.28.0 or later is required." -ForegroundColor Red
+if ([version]$Matches[1] -lt [version]"1.27.1") {
+    Write-Host "  ERROR: Azure Developer CLI 1.27.1 or later is required." -ForegroundColor Red
     Write-Host "  Update with: winget upgrade Microsoft.Azd" -ForegroundColor Yellow
     exit 1
 }
@@ -91,6 +91,12 @@ Write-Host "  Git:        $gitVersion"
 Write-Host "  Azure CLI:  $azVersion"
 Write-Host "  azd:        $azdVersion"
 Write-Host "  Python:     $pyVersion"
+
+azd ext install microsoft.foundry
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "  ERROR: Could not install the Microsoft Foundry azd extension bundle." -ForegroundColor Red
+    exit 1
+}
 
 # -----------------------------------------------------------------------
 Write-Step "2/10" "Installing Visual Studio Code extensions..."
@@ -229,8 +235,7 @@ if (Test-Path $reqPath) {
 # -----------------------------------------------------------------------
 Write-Step "10/10" "Writing .env configuration..."
 
-# The postprovision hook already writes .env, but if SkipProvision was used
-# we need to check.
+# Write the current provider outputs into the local lab environment file.
 $envPath = Join-Path (Join-Path $PSScriptRoot "..") ".env"
 if (-not (Test-Path $envPath) -or $SkipProvision) {
     $endpoint = $null

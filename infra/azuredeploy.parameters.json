@@ -13,9 +13,6 @@
     },
     "deploySecondModel": {
       "value": false
-    },
-    "enableHostedAgents": {
-      "value": false
     }
   }
 }

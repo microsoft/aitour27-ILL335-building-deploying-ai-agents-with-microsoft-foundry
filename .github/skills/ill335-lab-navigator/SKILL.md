@@ -25,11 +25,15 @@ Help the learner identify their current stage and reach the next useful checkpoi
 | Send a first model request | `docs/lab3-connect-and-infer.md` |
 | Build governed sentiment analysis | `docs/lab4-sentiment-analysis.md` |
 | Compare model behavior | `docs/lab5-model-comparison.md` |
-| Deploy a hosted agent | `docs/lab6-deploy-agent.md` |
+| Deploy or evaluate a hosted agent | `docs/lab6-deploy-agent.md` |
 | Review outcomes and next steps | `docs/lab7-summary.md` |
 | Remove Azure resources | `cleanup/CLEANUP.md` |
 
 Lab 5 is optional. Do not block Lab 6 when a learner has only one model deployment.
+
+Lab 6 Part C is optional and uses billable preview evaluation features. Do not block the workshop summary when a learner skips it.
+
+Before Lab 6, confirm `azd` 1.27.1 or later, run `azd ext install microsoft.foundry`, and verify Azure CLI and `azd` use the same tenant and subscription. The first deployment uses `azd up`; later code-only updates use `azd deploy`.
 
 ## Preserve the Learning Sequence
 

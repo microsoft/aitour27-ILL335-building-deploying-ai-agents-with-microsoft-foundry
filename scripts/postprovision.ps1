@@ -13,7 +13,6 @@ Write-Host "============================================" -ForegroundColor Cyan
 $projectEndpoint = azd env get-value AZURE_AI_PROJECT_ENDPOINT 2>$null
 $modelName       = azd env get-value MODEL_DEPLOYMENT_NAME 2>$null
 $modelName2      = azd env get-value MODEL_DEPLOYMENT_NAME_2 2>$null
-$acrName         = azd env get-value AZURE_CONTAINER_REGISTRY_NAME 2>$null
 
 if (-not $projectEndpoint) {
     Write-Host "WARNING: Could not retrieve AZURE_AI_PROJECT_ENDPOINT from azd." -ForegroundColor Yellow
@@ -35,10 +34,6 @@ if ($modelName2 -and $modelName2 -ne "") {
     $envContent += "`n`n# Second model for Lab 5 comparison`nMODEL_DEPLOYMENT_NAME_2=$modelName2"
 }
 
-if ($acrName -and $acrName -ne "") {
-    $envContent += "`n`n# Optional infrastructure output; not required for Lab 6 direct-code deployment`nAZURE_CONTAINER_REGISTRY_NAME=$acrName"
-}
-
 Set-Content -Path $envPath -Value $envContent -Encoding UTF8
 
 Write-Host ""
@@ -48,10 +43,6 @@ Write-Host "  MODEL_DEPLOYMENT_NAME: $modelName" -ForegroundColor Green
 if ($modelName2 -and $modelName2 -ne "") {
     Write-Host "  MODEL_DEPLOYMENT_NAME_2: $modelName2" -ForegroundColor Green
 }
-if ($acrName -and $acrName -ne "") {
-    Write-Host "  AZURE_CONTAINER_REGISTRY_NAME: $acrName" -ForegroundColor Green
-}
-
 # Create and activate Python virtual environment
 Write-Host ""
 Write-Host "  Setting up Python virtual environment..." -ForegroundColor Cyan

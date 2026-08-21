@@ -148,7 +148,6 @@ MODEL_DEPLOYMENT_NAME=$($outputs.MODEL_DEPLOYMENT_NAME.value)
 | `secondModelName` | string | `gpt-5.4` | Second model name |
 | `secondModelVersion` | string | `2026-03-05` | Second model version |
 | `secondModelCapacity` | int | `10` | Capacity for second model |
-| `enableHostedAgents` | bool | `true` | Enable optional hosted-agent support resources in the standalone template |
 
 ### Override Parameters Inline
 
@@ -229,14 +228,13 @@ az cognitiveservices account purge \
 | `QuotaExceeded` on model deployment | Insufficient TPM quota in region | Request quota increase or reduce `modelCapacity` |
 | `RoleAssignmentExists` | Re-deploying with same principal | Safe to ignore — role assignment is idempotent |
 | `ResourceProviderNotRegistered` | Provider not registered on subscription | Run `az provider register --namespace <provider>` |
-| `InvalidTemplate` on capability host | API version not available in region | Ensure `northcentralus` is used; capability host is region-limited |
 | Deployment timeout | Large-scale concurrent deployments | Retry failed deployments; reduce parallelism |
 
 ---
 
 ## Bicep Deployment Alternative
 
-The lab also includes a Bicep-based deployment designed for use with the Azure Developer CLI (`azd`). This is the path attendees follow if they run `setup.ps1` themselves.
+The lab also includes this standalone Bicep deployment for pre-provisioning workshop resources. The hosted-agent `azd` path uses the `microsoft.foundry` provider declared in `azure.yaml` instead.
 
 ### Files
 

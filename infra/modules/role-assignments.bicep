@@ -16,9 +16,6 @@ param principalType string = 'User'
 @description('Name of the AI Services resource to scope role assignments')
 param aiServicesName string
 
-@description('Name of the ACR resource (empty string skips ACR role)')
-param acrName string = ''
-
 // ---------------------------------------------------------------------------
 // Existing resource reference
 // ---------------------------------------------------------------------------
@@ -57,25 +54,6 @@ resource contributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = 
   properties: {
     principalId: principalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesContributorRoleId)
-    principalType: principalType
-  }
-}
-
-// ---------------------------------------------------------------------------
-// AcrPush — push agent container images (only when ACR is provisioned)
-// ---------------------------------------------------------------------------
-var acrPushRoleId = '8311e382-0749-4cb8-b61a-304f252e45ec'
-
-resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = if (!empty(acrName)) {
-  name: acrName
-}
-
-resource acrPushRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(acrName)) {
-  name: guid(acr.id, principalId, acrPushRoleId)
-  scope: acr
-  properties: {
-    principalId: principalId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPushRoleId)
     principalType: principalType
   }
 }

@@ -152,13 +152,19 @@ If not logged in:
 azd auth login
 ```
 
+Install the Microsoft Foundry extension bundle:
+
+```bash
+azd ext install microsoft.foundry
+```
+
 Set your tenant ID so azd provisions to the correct tenant:
 
 ```bash
 azd env set AZURE_TENANT_ID $(az account show --query tenantId -o tsv)
 ```
 
-> **Skip the azd first-run tools check (self-study only):** The first time you run `azd provision` or `azd deploy`, azd may prompt *"Would you like to check your Azure development tools?"*. This pauses an otherwise unattended run. Disable it once so future `azd` commands run without the prompt:
+> **Skip the azd first-run tools check (self-study only):** The first time you run `azd up`, azd may prompt *"Would you like to check your Azure development tools?"*. This pauses an otherwise unattended run. Disable it once so future `azd` commands run without the prompt:
 >
 > ```bash
 > azd config set tool.firstRunCompleted true

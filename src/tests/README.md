@@ -6,7 +6,7 @@ Offline checks and optional live validation for the Caldova consumer sentiment l
 |------|---------|
 | `test_sentiment.py` | Unit tests for confidence-based dashboard routing and regulated-signal escalation |
 | `validate_lab.py` | Repository structure, JSON, syntax, infrastructure, dependency, and optional live inference checks |
-| `TESTING.md` | Manual test instructions for each lab phase |
+| `TESTING.md` | Manual tests for inference, routing, hosted-agent deployment, and optional evaluation |
 
 ## Run the unit tests
 
