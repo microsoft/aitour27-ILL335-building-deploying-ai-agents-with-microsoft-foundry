@@ -18,7 +18,7 @@ In VS Code, ensure that the `.env` file has been created in the root of your pro
     MODEL_DEPLOYMENT_NAME
     ```
 
-    You may also see `MODEL_DEPLOYMENT_NAME_2` and `AZURE_CONTAINER_REGISTRY_NAME`, which are optional variables for later sections -- they are not required.
+    You may also see `MODEL_DEPLOYMENT_NAME_2`, which is optional for the model comparison lab.
 3. (Optional) Confirm the values are correct according to your Foundry project. `PROJECT_ENDPOINT` should match the project endpoint listed at https://ai.azure.com, and `MODEL_DEPLOYMENT_NAME` should match the name of the model deployment.
 
 ## Step 2: Validate your setup
@@ -36,13 +36,12 @@ Run the included validation script to confirm that all files, dependencies, CLI 
 
     ```text
     VALIDATION SUMMARY
-    Total checks: 100
-    ✅ Passed:  99
     ❌ Failed:  0
-    ⏭️ Skipped: 1
 
     Result: PASS -- lab is ready!
     ```
+
+    The exact check count can change as the workshop evolves. Confirm that the failed count is zero and the final result is `PASS`.
 
 If any checks fail, the output tells you exactly what to fix. Common issues:
 

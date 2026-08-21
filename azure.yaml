@@ -2,11 +2,24 @@
 
 name: building-deploying-ai-agents
 requiredVersions:
+    azd: ">=1.27.1"
     extensions:
-        azure.ai.agents: ">=1.0.0-beta.4"
+        azure.ai.agents: ">=1.0.0-beta.8"
+        azure.ai.projects: ">=1.0.0-beta.4"
 metadata:
     template: building-deploying-ai-agents@1.0.0
 services:
+    ai-project:
+        host: azure.ai.project
+        deployments:
+            - name: gpt-5.4-mini
+              model:
+                  format: OpenAI
+                  name: gpt-5.4-mini
+                  version: "2026-03-17"
+              sku:
+                  name: GlobalStandard
+                  capacity: 10
     caldova-consumer-sentiment-agent:
         project: src/agent
         host: azure.ai.agent
@@ -15,6 +28,8 @@ services:
             runtime: python_3_13
             entryPoint: app.py
             dependencyResolution: remote_build
+        uses:
+            - ai-project
         kind: hosted
         name: caldova-consumer-sentiment-agent
         description: B2C engagement agent for Caldova that measures product sentiment and routes regulated review signals
@@ -23,18 +38,10 @@ services:
               version: 2.0.0
         environmentVariables:
             - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
-              value: ${MODEL_DEPLOYMENT_NAME}
+              value: gpt-5.4-mini
         container:
             resources:
                 cpu: "1.0"
                 memory: 2Gi
-hooks:
-    postprovision:
-        windows:
-            name: postprovision
-            kind: pwsh
-            shell: pwsh
-            run: ./scripts/postprovision.ps1
-        posix:
-            shell: sh
-            run: ./scripts/postprovision.sh
+infra:
+    provider: microsoft.foundry

@@ -30,7 +30,8 @@ python src\tests\validate_lab.py
 - Confirm `.env` exists without printing its contents.
 - Check that `PROJECT_ENDPOINT` is not a placeholder.
 - Check that model deployment names match the Foundry project.
-- Use `az account show` and `azd auth login --check-status` for authentication state.
+- Use `az account show` and `azd auth status` for authentication state.
+- Confirm Azure CLI and `azd` are signed into the same tenant and subscription. Reauthenticate the mismatched CLI before retrying.
 
 ### Responses API
 
@@ -45,9 +46,13 @@ python src\tests\validate_lab.py
 
 ### Hosted Agent
 
-- Require `azd` 1.28.0 or later.
+- Require `azd` 1.27.1 or later and install the provider bundle with `azd ext install microsoft.foundry`.
+- Keep `azure.ai.agents` 1.0.0-beta.8 or later and `azure.ai.projects` 1.0.0-beta.4 or later in `azure.yaml` `requiredVersions`; the meta-extension installs these providers but does not replace the compatibility declarations.
+- Confirm `azure.yaml` contains separate `azure.ai.project` and `azure.ai.agent` services, an agent `uses` dependency, and `infra.provider: microsoft.foundry`.
+- Treat standalone `agent.yaml` and `agent.manifest.yaml` as deprecated. This lab uses direct-code remote build, so Dockerfiles, ACR provisioning, and capability-host resources indicate the wrong deployment path.
 - Run `python -m pip install -r src\agent\requirements.txt`, then `python -m pip check`.
 - Verify `/readiness`, not `/health`; the current host exposes readiness at port 8088.
+- Use `azd up` for the first provision-and-deploy operation and `azd deploy` only for later code updates.
 - Use `azd ai agent show --output json` before invoking a deployed agent.
 - Review deployment output and hosted logs before changing infrastructure.
 
@@ -56,6 +61,7 @@ python src\tests\validate_lab.py
 - Never request or reveal credentials, tokens, connection strings, or real patient data.
 - Do not disable content safety to make a test pass.
 - Do not delete resource groups or agent sessions without explicit learner approval.
+- Do not provision resources merely to validate local configuration or dependencies.
 - Do not replace current Responses API code with Chat Completions.
 - Do not add broad exception handlers that hide the original failure.
 

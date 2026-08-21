@@ -1,30 +1,3 @@
-## Before you're done
-
-This repo has been created for your AI Tour 2027 session. Here's how to get it ready.
-
-**Easiest path — use the agent (recommended):**
-
-- Open GitHub Copilot Chat and say `help me initialize repo`. The agent will walk you through getting the README populated.
-- When you're ready to publish, say `help me finalize repo`. The agent will clean up unused folders, validate everything, and remove this "Before you're done" section and other extra stuff that attendees don't need to see.
-- Curious how it works? Read the [agent workflow](.github/AGENT-WORKFLOW.md).
-
-**Doing it manually?**
-
-Fill in the sections below yourself, then:
-
-- Delete any placeholder folders you don't need (`data/`, `infra/`, etc.)
-- Delete this "Before you're done" section
-- Delete `.github/agents/`, `.github/tests/`, `.github/copilot-instructions.md`, and `.github/AGENT-WORKFLOW.md` — these are template tooling, not part of your published repo
-
-**Folder conventions:**
-
-- Attendee step-by-step guidance goes in `instructions/`. If you use MkDocs or a docs site instead, put it in `docs/` and link to it from this README.
-- Reference material and background reading go in `docs/`.
-- Presenter notes, deck link, recordings, and re-delivery materials go in `delivery-resources/`. Fill in [`delivery-resources/README.md`](delivery-resources/README.md).
-- You can add a `.devcontainer/` folder if needed.
-
----
-
 <a name="start-building"></a>
 
 <p align="center">
@@ -33,7 +6,7 @@ Fill in the sections below yourself, then:
 
 # [Microsoft AI Tour 2027](https://aitour.microsoft.com)
 
-## 🔥 ILL335: Building & deploying AI agents with Microsoft Foundry
+## 🔥 ILL335: Building & Deploying AI Agents with Microsoft Foundry
 
 ### Session description
 
@@ -63,7 +36,7 @@ By the end of this session, you will be able to:
 
 - Discover, provision, and connect to hosted models in Microsoft Foundry using the Azure AI Projects SDK and OpenAI-compatible client — going from zero to a working inference call in minutes
 - Build a production-quality consumer sentiment analysis pipeline that classifies feedback and independently routes regulated signals for human review using structured prompts and business logic
-- Deploy application logic as a hosted agent on Foundry Agent Service using the Microsoft Agent Framework and `azd deploy` — no container packaging or infrastructure management required
+- Deploy application logic as a hosted agent on Foundry Agent Service using the Microsoft Agent Framework, the `microsoft.foundry` provider, and `azd up`
 
 ### 💻 Technologies used
 
@@ -84,8 +57,6 @@ Pick your next step based on your learning style:
 | **[Microsoft Foundry Community](https://aka.ms/MicrosoftFoundryDiscord-AITour27)** | Connect with other learners and experts in our Discord community |
 
 ### 🌟 Microsoft Learn MCP Server
-
-<!-- Remove this section if the Microsoft Learn MCP Server is not relevant to the session. -->
 
 The Microsoft Learn MCP Server gives your AI agent direct access to Microsoft's official documentation — grounded, up-to-date answers about the topics in this session.
 

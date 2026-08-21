@@ -141,7 +141,7 @@ In VS Code, ensure that the `.env` file has been created in the root of your pro
     MODEL_DEPLOYMENT_NAME
     ```
 
-    You may also see `MODEL_DEPLOYMENT_NAME_2` and `AZURE_CONTAINER_REGISTRY_NAME`, which are optional variables for later sections -- they are not required.
+    You may also see `MODEL_DEPLOYMENT_NAME_2`, which is optional for the model comparison lab.
 3. (Optional) Confirm the values are correct according to your Foundry project. `PROJECT_ENDPOINT` should match the project endpoint listed at https://ai.azure.com, and `MODEL_DEPLOYMENT_NAME` should match the name of the model deployment.
 
 ## Step 2: Validate your setup
@@ -159,13 +159,12 @@ Run the included validation script to confirm that all files, dependencies, CLI 
 
     ```text
     VALIDATION SUMMARY
-    Total checks: 100
-    ✅ Passed:  99
     ❌ Failed:  0
-    ⏭️ Skipped: 1
 
     Result: PASS -- lab is ready!
     ```
+
+    The exact check count can change as the workshop evolves. Confirm that the failed count is zero and the final result is `PASS`.
 
 If any checks fail, the output tells you exactly what to fix. Common issues:
 
@@ -344,7 +343,7 @@ Do not include sensitive personal or medical data in prompts. For production wor
 
 # Part 4: Build Caldova's consumer sentiment analysis application
 
-> **Duration:** ~20 minutes
+> **Duration:** ~20 minutes, plus an optional 10-15 minute evaluation extension
 
 ## Objective
 
@@ -744,13 +743,13 @@ If you finish early, try these:
 
 # Part 6: Deploy a hosted agent
 
-> **Duration:** ~20 minutes
+> **Duration:** ~20 minutes, plus an optional 10-15 minute evaluation extension
 
 ## Objective
 
 Deploy Caldova's consumer sentiment agent directly from Python source to Microsoft Foundry Agent Service. You will inspect the Agent Framework code, verify the direct-code service configuration in `azure.yaml`, test the agent locally with the Agent Inspector, deploy it to the cloud, and validate the hosted agent.
 
-This lab is organized into two sections. **Part A (recommended)** drives the whole lifecycle -- test, deploy, interact, and monitor -- from the Foundry Toolkit UI. **Part B (optional)** shows how to do the same thing from the `azd` command line. You only need to complete one of them.
+This lab has three parts. **Part A** tests the agent locally with the Foundry Toolkit. **Part B** deploys and verifies it with `azd`. **Part C** is an optional self-paced extension that generates and runs a structured evaluation against the deployed agent.
 
 ## What is a hosted agent?
 
@@ -774,13 +773,15 @@ The Foundry Toolkit and `azd` build your agent code into the hosted service and 
 | Runtime | Python 3.13 |
 | Host adapter | `ResponsesHostServer` |
 | Protocol | Responses 2.0.0 |
-| Deployment | Direct code through `azure.yaml` and `azd deploy` |
+| Deployment | Direct code through `azure.yaml` and `azd up` |
 | History | Managed by the Foundry platform |
 | Identity | Azure identity; no credentials stored in source |
 
 ## Prerequisites
 
 - The Foundry Toolkit extension installed and signed in to Azure (from Lab 1).
+- Azure Developer CLI (`azd`) 1.27.1 or later.
+- The Microsoft Foundry extension bundle installed with `azd ext install microsoft.foundry`.
 - `.env` with `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` set.
 
 Install the agent dependencies (separate from the main lab requirements):
@@ -789,7 +790,7 @@ Install the agent dependencies (separate from the main lab requirements):
 pip install -r src/agent/requirements.txt
 ```
 
-> **Note:** The Foundry Toolkit uses the Azure Developer CLI (`azd`) and its `azure.ai.agents` extension under the hood to build and deploy hosted agents. Both are already installed and configured in the lab environment.
+> **Note:** The `microsoft.foundry` meta-extension installs compatible `azure.ai.*` providers, including the project and hosted-agent providers used by this lab.
 
 ## Review the agent code
 
@@ -834,36 +835,46 @@ if __name__ == "__main__":
 
 - **Exposes** the agent through the Responses protocol expected by Foundry hosting.
 
-### The container definition: src/agent/Dockerfile
+### The deployment definition: azure.yaml
 
-This file builds a container with a Python 3.12 installation and packages installed from **requirements.txt**.
-
-```dockerfile
-FROM python:3.12-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 8088
-CMD ["python", "-u", "app.py"]
-```
-
-### The agent manifest: src/agent/agent.yaml
-
-The manifest tells Foundry how to configure the review moderation agent — which protocols it supports (Responses API) and what environment variables to inject.
+The root `azure.yaml` is the source of truth for the Foundry project, model deployment, and hosted agent. The `microsoft.foundry` provider provisions the project without the legacy capability-host infrastructure pattern. The agent uses direct source-code deployment with the managed Python 3.13 runtime:
 
 ```yaml
-kind: hosted
-name: caldova-review-moderation-agent
-description: Feedback review moderation agent for Caldova that classifies customer reviews as SAFE, NEEDS_REVIEW, or UNSAFE and route it accordingly
-protocols:
-    - protocol: responses
-      version: "1.0.0"
-environment_variables:
-    - name: AZURE_AI_PROJECT_ENDPOINT
-      value: ${AZURE_AI_PROJECT_ENDPOINT}
-    - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
-      value: ${MODEL_DEPLOYMENT_NAME}
+services:
+    ai-project:
+        host: azure.ai.project
+        deployments:
+            - name: gpt-5.4-mini
+              model:
+                  format: OpenAI
+                  name: gpt-5.4-mini
+                  version: "2026-03-17"
+              sku:
+                  name: GlobalStandard
+                  capacity: 10
+    caldova-consumer-sentiment-agent:
+        host: azure.ai.agent
+        project: src/agent
+        codeConfiguration:
+            runtime: python_3_13
+            entryPoint: app.py
+            dependencyResolution: remote_build
+        uses:
+            - ai-project
+        kind: hosted
+        name: caldova-consumer-sentiment-agent
+        protocols:
+            - protocol: responses
+              version: 2.0.0
+        environmentVariables:
+            - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
+              value: gpt-5.4-mini
+        container:
+            resources:
+                cpu: "1.0"
+                memory: 2Gi
+infra:
+    provider: microsoft.foundry
 ```
 ---
 
@@ -877,211 +888,112 @@ The agent uses packages that are separate from the main lab requirements, and bo
 pip install -r src/agent/requirements.txt
 ```
 
-This includes **agent-dev-cli** and **debugpy**, which power the Agent Inspector and local debugging.
+This includes the Agent Framework hosting adapter and **debugpy** for local debugging.
 
 ======
 
-# Part A — Deploy with the Foundry Toolkit (Recommended)
+# Part A: Test locally with the Agent Inspector
 
-In this section you drive the entire agent lifecycle from the Foundry Toolkit UI inside VS Code: test locally with the Agent Inspector, deploy, chat with the deployed agent, watch its logs, and clean up.
+Before creating a cloud version, run the same Python entry point locally and check its Responses endpoint through the Foundry Toolkit.
 
-## A1: Sign in to azd
+1. In VS Code, open **Run and Debug**.
+2. Select **Debug Agent with Agent Inspector**.
+3. Press **F5**. The configured tasks start `src/agent/app.py`, wait for port `8088`, and open the Agent Inspector.
+4. Send this feedback:
 
-The Foundry Toolkit uses `azd` under the hood, so make sure it is authenticated before you start. Open a terminal and run:
+   ```text
+   The delivery was late, but support kept me informed.
+   ```
 
-```powershell
-azd auth login
-```
+5. Confirm that the response is one JSON object with sentiment, confidence, topics, review category, and summary fields.
 
-A browser window opens for you to sign in. Use the same account you used for the Foundry Toolkit. Once you see `Logged in to Azure`, you are ready.
+The exact labels can vary, but the agent should identify both the delivery problem and the positive support experience. Stop the debugger when the check is complete.
 
-> **Tip:** You only need to do this once per environment. If you are already signed in, `azd auth login` will confirm your existing session.
+## Local checkpoint
 
-
-## A2: Test the agent locally with the Agent Inspector
-
-Before deploying, validate that the agent runs correctly on your machine. The Foundry Toolkit ships an **Agent Inspector** -- an interactive test harness that runs your agent as a local HTTP server and lets you send messages and inspect every request, response, and trace, all inside VS Code.
-
-1. In VS Code, open `src/agent/app.py`.
-2. Press **F5** (or select **Run → Start Debugging**) and, if prompted, choose **Debug Agent with Agent Inspector**.
-3. If you see a dialog about allowing network access, select **Allow**.
-4. VS Code starts the agent server and opens the Agent Inspector webview. You should see the server start in the terminal:
-
-    ```text
-    Starting caldova-consumer-sentiment-agent...
-      Endpoint: https://<your-resource>.services.ai.azure.com/api/projects/<your-project>
-      Model:    gpt-5.4-mini
-    Application startup complete.
-    ```
-
-    > **Tip:** If the Inspector does not open automatically, click the Foundry Toolkit icon in the Activity Bar → **Agent (local) → Open Agent Inspector**.
-
-5. In the Agent Inspector chat box, send a review and inspect the JSON response and trace. Try these prompts to validate each category:
-
-    | Feedback | Expected review category |
-    |----------|--------------------------|
-    | The Caldova topical relief gel is convenient, but the cap is difficult to open. | NONE |
-    | I felt dizzy after taking the Caldova allergy relief tablets. | POTENTIAL_ADVERSE_EVENT |
-    | The safety seal on the bottle was already broken when it arrived. | PRODUCT_QUALITY_COMPLAINT |
-    | What dose should I give my child? | MEDICAL_INQUIRY |
-
-    Each response is a structured JSON object with sentiment, confidence, topics, review_category, and summary. Confirm the agent does not provide medical advice.
-
-6. Click the **Events** tab to see the raw stream of server-sent events. Because the agent speaks the OpenAI Responses API, the JSON is streamed token-by-token. A `response.completed` event means the agent returned a well-formed response.
-
-When you are done testing, press the **Stop** button in the debug toolbar (or **Ctrl+C** in the terminal) to shut the agent down.
-
-> If Agent Inspector is unavailable in your installed Toolkit version, run `python src/agent/app.py` and use the local Responses endpoint shown by the server.
-
-## A3: Deploy the agent with the Deploy button
-
-Once you tested your agent locally, you can deploy the hosted agent **from inside VS Code** using the **Deploy** button in the Foundry Toolkit Agent Inspector UI. The toolkit handles the entire workflow — provisioning, building, and deploying — with no manual `azd up` required.
-
-In the deployment configuration dialog, you can optionally change the agent name, deployment method, CPU and memory quotas. For the sake of this lab, leave the defaults and click **Deploy**.
-
-When the deployment finishes, you should see a success notification from the Foundry Toolkit and the **Hosted Agent Playground** will be loaded to let you interact with your deployed agent.
-
-### What the toolkit does under the hood
-
-When you deploy, the Foundry Toolkit runs the same multi-step `azd` workflow you would otherwise run manually:
-
-1. **Provisions** — Creates/updates infrastructure (ACR, capability host, RBAC)
-2. **Builds** — Sends src/agent/ to ACR for a remote Docker build
-3. **Deploys** — Registers a hosted agent version on Foundry Agent Service
-4. **Starts** — Launches the container and waits for it to be ready
-
-Since this lab environment has already provisioned the resources, the toolkit skips the provisioning step and only registers the new agent version.
-
-> The first deployment takes 3-5 minutes. Subsequent deployments are faster.
->
-> **Note:** You may briefly see a **404 error** while the agent registers. This is a known post-deploy timing issue, not a failure — as long as the toolkit reports the container built and the agent deployed, you can safely ignore it.
-
-
-## A4: Interact with the hosted agent playground
-
-1. In VS Code, click the Foundry Toolkit icon to open the toolkit panel.
-2. Expand **My resources** and click **Agents**. Hosted agents are listed under the **Hosted** tab.
-3. Find `caldova-review-moderation-agent` in the list. Its status should show **Success**.
-4. Select the agent and open it in the **Playground**.
-
-Send a few reviews to confirm it works in the cloud:
-
-```text
-The tablets work well, but delivery was late.
-```
-
-Confirm the agent returns valid governed JSON and that sentiment and review routing remain independent.
-
-> **Tip:** If the agent does not appear yet, refresh the Agents view -- it can take a minute after deployment for the agent to register.
-
-## A5: Monitor the agent logs
-
-1. In the Foundry Toolkit panel, expand **My resources → Agents** and select `caldova-consumer-sentiment-agent` (under the **Hosted** tab).
-2. Open the **Logs** view for the agent.
-3. Click **Start** to begin streaming logs. As you send messages from the playground, the corresponding request and container activity appear in real time.
-4. When finished, click **Stop**.
-
-Never send secrets, credentials, or unnecessary personal or health information to logs.
-
-## A6: Clean up
-
-When you are done with the UI workflow, remove the hosted agent so it does not keep consuming resources:
-
-1. In the Foundry Toolkit panel, expand **My resources → Agents** (the **Hosted** tab).
-2. Right-click `caldova-consumer-sentiment-agent` (or use the **...** menu) and select **Delete**.
-3. Confirm the deletion.
-
-> **Note:** Deleting the agent removes the hosted deployment. If you also want to tear down the underlying infrastructure, use `azd down` as shown in Part B.
+The Agent Inspector receives a valid JSON response and the local server reports no authentication or startup errors.
 
 ======
 
-# Part B (Optional) — Deploy with the command line
+# Part B: Deploy and verify the hosted agent
 
-Prefer the terminal, or want to automate the workflow in CI/CD? This section walks through the same lifecycle using the `azd` CLI. You only need to do either Part A or Part B.
+Local testing proves the code and prompt work together. Deployment packages the Python source, builds it remotely with the managed Python 3.13 runtime, and creates an immutable hosted-agent version.
 
-## B1: Sign in to azd
+> **Cost notice:** The following commands create or use billable Azure resources. In a managed workshop, follow your instructor's directions before running them.
 
-```powershell
-azd auth login
-```
-
-Use the same account you used for the Foundry Toolkit. Once you see `Logged in to Azure`, continue.
-
-> **Tip:** If you already ran `azd auth login` in Part A, you are still signed in and can skip this step.
-
-## B2: Test the agent locally
-
-Run the agent directly and send it a request over HTTP. Start the agent from `src/agent`:
+From the repository root, verify the CLI and install the Foundry extension bundle:
 
 ```powershell
-python src/agent/app.py
+azd version
+azd ext install microsoft.foundry
 ```
 
-From a second terminal, send a request:
+For the first deployment in an environment, provision the project and deploy the agent together:
 
 ```powershell
-Invoke-RestMethod -Uri "http://localhost:8088/responses" `
-    -Method POST -ContentType "application/json" `
-    -Body '{"input": "The safety seal on the bottle was already broken when it arrived."}' | ConvertTo-Json -Depth 10
+azd up
 ```
 
-The response is an OpenAI Responses API object; the classification JSON is in the `text` field inside `output[].content[]`. When you are done, press **Ctrl+C** in the agent terminal to stop the local server.
+Later code-only changes use `azd deploy` instead. Each successful deployment creates an immutable agent version.
 
-## B3: Deploy with azd deploy
-
-The lab environment has already provisioned the infrastructure, so deploy the service code from the repository root:
+Check that the deployed version is active:
 
 ```powershell
-azd deploy
+azd ai agent show --output json
 ```
 
-This uploads the Python service defined in `agent.yaml`, builds it with the managed Python 3.12 runtime, and registers the new hosted-agent version.
-
-## B4: Invoke the agent
-
-Verify the agent is running:
+Send one deployed smoke test:
 
 ```powershell
-azd ai agent show --output table
+azd ai agent invoke caldova-consumer-sentiment-agent "The delivery was late, but support kept me informed."
 ```
 
-Send messages to your hosted agent directly from the CLI:
+The response should contain valid governed JSON. The `show` command also returns the Responses endpoint and a Foundry Playground URL for visual testing.
+
+## Cloud checkpoint
+
+The agent status is `active`, and the remote invocation returns a JSON object without storing credentials in source code.
+
+======
+
+# Part C: Generate an evaluation suite (optional preview)
+
+Evaluation generation creates synthetic cases and evaluators from the Caldova quality and safety brief. It complements the one-off invocation above with repeatable, scored coverage.
+
+> **Preview and cost notice:** Generation and evaluation make billable model calls and can take several minutes. Skip this section during the core workshop when time is limited.
 
 ```powershell
-azd ai agent invoke "The tablets work well, but delivery was late."
-azd ai agent invoke "I felt dizzy after taking the Caldova allergy relief tablets."
+azd ai agent eval generate `
+    --agent caldova-consumer-sentiment-agent `
+    --gen-instruction-file src/agent/evaluation-instructions.md `
+    --eval-model gpt-5.4-mini `
+    --max-samples 15 `
+    --out-file eval.yaml
 ```
 
-By default, `azd ai agent invoke` reuses the same conversation session. To start fresh, add `--new-session`.
-
-## B5: Monitor logs
-
-Stream the agent's container logs:
+Inspect the generated dataset, evaluator definitions, rubric, and `eval.yaml` before running them. Confirm that the cases cover valid JSON, ordinary and mixed sentiment, regulated routing, and the prohibition on medical advice.
 
 ```powershell
-azd ai agent monitor
+azd ai agent eval run --config eval.yaml
 ```
 
-Open a second terminal for log monitoring while you invoke the agent in the first.
+Before changing the agent because of a low score, open a failed row and compare the rubric explanation with `sample.output_text`. If `sample.output_text` is valid JSON but the explanation describes a list, annotations, or an output-item wrapper, the preview evaluator graded Responses transport metadata instead of the assistant text. Refine the generated rubric to grade `sample.output_text`, upload it with `azd ai agent eval update --config eval.yaml --evaluator-only`, then rerun the evaluation.
 
-## B6: Clean up
+If the mismatch persists or valid assistant text is marked not applicable, report the schema criterion separately as a preview evaluator limitation instead of treating the aggregate pass rate as the agent's structured-output quality.
 
-When you are done, clean up all Azure resources provisioned by azd:
-
-```powershell
-azd down
-```
-
-This removes the hosted agent deployment and any infrastructure provisioned by azd.
+Compare this exploratory suite with `src/agent/evals/caldova-golden.jsonl`. Generated cases broaden coverage; the human-reviewed golden cases protect regulated-routing behavior when the prompt, model, or tools change.
 
 ## CLI command reference
 
 | Command | Purpose |
 |---------|---------|
+| `azd up` | Provision the Foundry project and deploy the hosted agent |
 | `azd deploy` | Rebuild and redeploy the hosted-agent code (skip provisioning) |
 | `azd ai agent show` | Check agent status |
 | `azd ai agent invoke "msg"` | Send a message to the agent |
 | `azd ai agent monitor` | Stream container logs |
+| `azd ai agent eval generate` | Generate a dataset, evaluators, and evaluation recipe |
+| `azd ai agent eval run` | Run a generated evaluation recipe |
 | `azd down` | Delete all resources |
 
 ## Stretch goal: add a topic or review category
@@ -1100,12 +1012,13 @@ Test the new value in the hosted-agent playground. This reinforces the direct ed
 - ✅ How `ResponsesHostServer` exposes the current Responses protocol
 - ✅ Why platform-managed history pairs with `store: False`
 - ✅ How to test a hosted agent locally with the Agent Inspector (F5) before deploying
-- ✅ How to deploy with `azure.yaml` and `azd deploy`, and validate in Foundry Toolkit
+- ✅ How to provision and deploy with `azure.yaml` and `azd up`, and validate in Foundry Toolkit
 - ✅ How to invoke, monitor, and manage hosted agents
+- ✅ How generated evaluations complement curated regression cases
 
 ## Key takeaway
 
-> A Foundry hosted agent can be deployed directly from Python source. The repository defines behavior in `app.py`, hosting in `azure.yaml`, and deployment through `azd deploy` -- and the entire workflow happens inside VS Code with the Foundry Toolkit.
+> A Foundry hosted agent can be deployed directly from Python source. The repository defines behavior in `app.py`, hosting in `azure.yaml`, and the first deployment through `azd up` -- and the entire workflow can also run inside VS Code with the Foundry Toolkit.
 
 ======
 
@@ -1175,8 +1088,8 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 
 | | |
 |---|---|
-| **What you did** | Tested Caldova's agent locally with the Agent Inspector, deployed it as a hosted-agent, and tested it in the hosted-agent playground |
-| **Key skill** | Direct-code deployment, the Agent Framework SDK, and hosted-agent lifecycle management |
+| **What you did** | Tested Caldova's agent locally, deployed it as a hosted agent, validated it remotely, and optionally generated a structured evaluation suite |
+| **Key skill** | Direct-code deployment, the Agent Framework SDK, hosted-agent lifecycle management, and evaluation generation |
 | **Outcome** | A live, cloud-hosted **caldova-consumer-sentiment-agent** accessible via the OpenAI Responses API |
 
 **Core concept:** A hosted agent turns local Python code into a managed service while Foundry handles runtime infrastructure and conversation history.
@@ -1186,7 +1099,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 **Azure & infrastructure**
 - Navigating the Foundry Toolkit for VS Code and the model catalog
 - Managing Azure resources (AI Services, RBAC, monitoring)
-- Understanding Foundry project architecture (accounts, projects, deployments, capability hosts)
+- Understanding Foundry project architecture (accounts, projects, and model deployments)
 
 **Python & AI development**
 - Authenticating with **DefaultAzureCredential** (no hardcoded keys)
@@ -1198,9 +1111,10 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 **Agent development & deployment**
 - Using the Microsoft Agent Framework (Agent, FoundryChatClient)
 - Local testing with the Foundry Toolkit Agent Inspector before cloud deployment
-- Deploying Python code to Foundry Agent Service with `azure.yaml` and `azd deploy`
+- Deploying Python code to Foundry Agent Service with `azure.yaml` and `azd up`
 - Invoking and monitoring agents via the `azd ai agent` CLI
 - Testing agents in the Foundry Toolkit hosted agents playground
+- Generating structured evaluations and comparing synthetic coverage with curated regression cases
 
 ## Key files used by the lab
 
@@ -1213,10 +1127,10 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 | `src/03_model_comparison.py` | Side-by-side model evaluation |
 | `src/agent/app.py` | Hosted Agent Framework application |
 | `src/agent/requirements.txt` | Agent dependencies |
-| `src/agent/agent.yaml` | Hosted agent manifest |
-| `src/agent/Dockerfile` | Container definition for the hosted agent |
+| `src/agent/evaluation-instructions.md` | Quality and safety criteria for generated evaluations |
+| `src/agent/evals/caldova-golden.jsonl` | Curated hosted-agent regression cases |
 | `.env` | Local environment configuration |
-| `azure.yaml` | azd project configuration |
+| `azure.yaml` | Foundry project, model, and direct-code hosted-agent configuration |
 
 ## Key patterns and takeaways
 
@@ -1225,6 +1139,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 3. **Start cheap, escalate smart.** Use a fast, cheap model for most requests and route only low-confidence cases to a more capable model.
 4. **Validate before deployment.** Test with the Agent Inspector, then validate again in the hosted-agent playground after `azd deploy`.
 5. **Keep regulated routing independent.** Sentiment and regulated review categories are separate signals -- never route on sentiment alone.
+6. **Use complementary evaluation sets.** Generated suites discover cases; curated golden sets compare agent versions against fixed expectations.
 
 ## Next steps
 
@@ -1233,6 +1148,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 - **Build a multi-agent workflow** -- chain the sentiment agent with a response-drafting agent.
 - **Connect to a frontend** -- the hosted agent exposes an OpenAI-compatible REST API at `/responses`.
 - **Set up CI/CD** -- use GitHub Actions with `azd` to redeploy on every push that changes `src/agent/**`.
+- **Add an evaluation quality gate** -- run the curated golden suite before promoting a new agent version.
 
 ## Thank you
 

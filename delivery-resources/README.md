@@ -28,7 +28,7 @@ If you are an **attendee** working through the lab, start at the root [README](.
 | Lab 2: Create and Configure a Foundry Project | 10 min | Demo | `setup.ps1` / `setup.sh` provisions everything via `azd` + Bicep |
 | Lab 3: Connect and Send Your First Inference | 12 min | Demo | `AIProjectClient` + `get_openai_client()` |
 | Lab 4: Build a Consumer Sentiment Analysis Application for Caldova | 20 min | Demo | Structured JSON prompt → governed routing logic → batch run |
-| Lab 6: Deploy a Hosted Agent | 15 min | Demo | `azd deploy` sends Python source to Foundry Agent Service |
+| Lab 6: Deploy a Hosted Agent | 15 min | Demo | `azd up` provisions the Foundry project and deploys Python source |
 | Lab 7: Summary, takeaways, Q&A, next steps | 5 min | Speaker only | Point to Lab 5 as self-paced extension |
 | **Total** | **75 min** | | |
 
@@ -44,7 +44,7 @@ Reinforce these three messages at the start, in the middle, and at the close:
 
 1. Attendees can **discover, provision, and connect** to hosted models in Microsoft Foundry — zero to a working inference call in minutes.
 2. Attendees can **build a production-quality consumer sentiment analysis pipeline** that returns structured JSON, with governed routing logic on top.
-3. Attendees can **deploy a hosted agent directly from Python source** with `azd deploy` — no infrastructure management.
+3. Attendees can **deploy a hosted agent directly from Python source** with `azd up` and the `microsoft.foundry` provider.
 
 If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK pattern is the foundation).
 
@@ -58,7 +58,7 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 - [ ] Sign in: `az login` and `azd auth login` — confirm the subscription you are using has quota for **gpt-5.4-mini** in your chosen region (see [setup/SETUP.md](../setup/SETUP.md) and [setup/armsetup.md](../setup/armsetup.md)).
 - [ ] Run `.\scripts\setup.ps1` (or `./scripts/setup.sh`) and confirm a clean provision. Capture the resource group name — you may want to leave it provisioned to skip Lab 2 wait time on stage.
 - [ ] Run `src/01_first_inference.py`, `src/02_sentiment_analysis.py`, and the agent in `src/agent/` to confirm everything works.
-- [ ] Run `azd deploy` once in the trainer environment so authentication and extension setup are complete before the session.
+- [ ] Install the current extension bundle with `azd ext install microsoft.foundry`, then run `azd up` once in the trainer environment.
 
 ### Slides, screen, network
 - [ ] Confirm the slide deck version matches the lab version (check the title slide against `session-outline.md`).
@@ -145,13 +145,17 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 
 - Open `src/agent/app.py` and walk through `FoundryChatClient`, `ResponsesHostServer`, and `default_options={"store": False}`.
 - Open `azure.yaml` and highlight direct code deployment, Python 3.13, and Responses protocol 2.0.0.
-- Run `azd deploy`. Explain that Foundry resolves dependencies and hosts the Python source on managed infrastructure.
+- Run `azd up`. Explain that the `microsoft.foundry` provider provisions the project and model, then hosts the Python source on managed infrastructure.
 - When deployment finishes, invoke the agent:
   - Via CLI: `azd ai agent invoke`
   - Via the Foundry **Playground** in the portal — show the live request/response
 - Optional: tail logs from the agent to show observability.
+- Optional self-paced extension: generate a structured evaluation with `azd ai agent eval generate`, inspect `eval.yaml` and its rubric, then run it with `azd ai agent eval run`.
+- Contrast the generated cases with `src/agent/evals/caldova-golden.jsonl`: generated data expands coverage, while curated cases protect regulated-routing behavior across versions.
 
 **If deployment is slow:** keep the narrative going — talk about platform-managed runtime, history, scaling, and identity.
+
+**Cost and timing note:** evaluation generation is a billable preview feature and can take several minutes. Do not include it in the core 75-minute delivery unless the deployment finishes early.
 
 ### Lab 7 — Wrap, takeaways, Q&A (5 min)
 
@@ -178,8 +182,8 @@ The vast majority of attendee issues fall into one of these buckets. Triage in t
 | `DefaultAzureCredential` fails in Python | Not signed in, or wrong tenant active | `az login`; verify `az account show` matches the project's subscription |
 | `401`/`403` on first inference call | RBAC role assignment hasn't propagated yet | Wait 1–2 minutes; re-run. If still failing, confirm role assignment in the portal |
 | `ModuleNotFoundError` | Virtual env not activated or `pip install -r requirements.txt` not run | Activate venv; reinstall |
-| `azd deploy` fails during dependency resolution | Agent package or runtime mismatch | Check `src/agent/requirements.txt` and the Python 3.13 setting in `azure.yaml` |
-| `azd deploy` is slow | Hosted runtime is being prepared | Expected on a first deployment; keep narrating |
+| `azd up` fails during dependency resolution | Agent package or runtime mismatch | Check `src/agent/requirements.txt` and the Python 3.13 setting in `azure.yaml` |
+| `azd up` is slow | Foundry resources and the hosted runtime are being prepared | Expected on a first deployment; keep narrating |
 | Agent invoke returns empty / weird response | Wrong deployment name in `.env` | Re-run setup script or manually align `MODEL_DEPLOYMENT_NAME` |
 | Attendee can't find the lab | Sent to wrong tab | Direct to [docs/lab1-discover-models.md](../docs/lab1-discover-models.md) |
 

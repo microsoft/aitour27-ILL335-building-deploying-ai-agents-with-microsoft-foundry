@@ -132,19 +132,19 @@ echo "=== All tests passed ==="
 ### Test 7: Run the Hosted Agent Locally
 
 ```bash
-python src/agent/app.py
+azd ai agent run caldova-consumer-sentiment-agent
 ```
 
 **Pass criteria:**
 
 - [ ] The server starts on port 8088
 - [ ] The startup output names `caldova-consumer-sentiment-agent`
-- [ ] The Agent Inspector can connect to the local server
+- [ ] The Agent Inspector opens and connects to the local server
 
 ### Test 8: Invoke Agent
 
 ```bash
-azd ai agent invoke --local "The product was convenient, but I felt dizzy after using it."
+azd ai agent invoke caldova-consumer-sentiment-agent --local "The product was convenient, but I felt dizzy after using it."
 ```
 
 **Pass criteria:**
@@ -156,16 +156,48 @@ azd ai agent invoke --local "The product was convenient, but I felt dizzy after 
 
 ### Test 9: Deploy and Invoke the Hosted Agent
 
+> The following commands create or use billable Azure resources. In a managed workshop, follow your instructor's directions before running them.
+
 ```bash
-azd deploy
-azd ai agent invoke "The safety seal was broken when the bottle arrived."
+azd up
+azd ai agent show --output json
+azd ai agent invoke caldova-consumer-sentiment-agent "The safety seal was broken when the bottle arrived."
 ```
+
+Use `azd deploy` instead of `azd up` for later code-only updates to an environment that this project already provisioned.
 
 **Pass criteria:**
 
 - [ ] `caldova-consumer-sentiment-agent` deploys successfully
+- [ ] `azd ai agent show` reports an active agent version
 - [ ] The response includes `PRODUCT_QUALITY_COMPLAINT`
 - [ ] The feedback is routed for human review
+
+### Test 10: Generate and Run an Evaluation (Optional Preview)
+
+> Evaluation generation and execution make billable model calls and can take several minutes. Review generated artifacts before running the evaluation.
+
+```bash
+azd ai agent eval generate \
+	--agent caldova-consumer-sentiment-agent \
+	--gen-instruction-file src/agent/evaluation-instructions.md \
+	--eval-model gpt-5.4-mini \
+	--max-samples 15 \
+	--out-file eval.yaml
+```
+
+Inspect the generated dataset, evaluator definitions, rubric, and `src/agent/eval.yaml`, then run:
+
+```bash
+azd ai agent eval run --config eval.yaml
+```
+
+**Pass criteria:**
+
+- [ ] The generated suite contains 15 domain-relevant cases
+- [ ] Cases cover valid JSON, mixed feedback, regulated routing, and medical-advice safety
+- [ ] The evaluation run completes and reports per-evaluator results
+- [ ] At least one failed or borderline case is reviewed before changing the agent
 
 ---
 

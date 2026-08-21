@@ -185,7 +185,7 @@ Then run the offline validation checks:
 python src\tests\validate_lab.py
 ```
 
-Expected result: all offline checks pass (101/101).
+Expected result: all offline checks pass (the current baseline is 119 checks).
 
 ---
 

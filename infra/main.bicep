@@ -12,6 +12,18 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+@description('Resource group name supplied by the Microsoft Foundry provider')
+param resourceGroupName string
+
+@description('Foundry project name supplied by the Microsoft Foundry provider')
+param foundryProjectName string
+
+@description('Salt supplied by the Microsoft Foundry provider for deterministic resource names')
+param resourceTokenSalt string
+
+@description('Tags supplied by the Microsoft Foundry provider')
+param tags object
+
 @description('Name of the model to deploy')
 param modelName string = 'gpt-5.4-mini'
 
@@ -28,7 +40,7 @@ param modelSkuName string = 'GlobalStandard'
 param modelCapacity int = 10
 
 @description('Optional: deploy a second model for comparison lab')
-param deploySecondModel bool = false
+param deploySecondModel string = 'false'
 
 @description('Second model name (for comparison lab)')
 param secondModelName string = 'gpt-5.4'
@@ -50,29 +62,24 @@ param principalId string = ''
 ])
 param principalType string = 'User'
 
-@description('Enable optional hosted-agent support infrastructure for ILL335')
-param enableHostedAgents bool = false
-
-@description('Enable the optional compatibility capability host. The direct-code learner path uses platform-managed history.')
-param enableCapabilityHost bool
-
 // ---------------------------------------------------------------------------
 // Variables
 // ---------------------------------------------------------------------------
 var abbrs = loadJsonContent('./abbreviations.json')
-var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-var tags = {
+var resourceToken = toLower(uniqueString(subscription().id, environmentName, location, resourceTokenSalt))
+var shouldDeploySecondModel = toLower(deploySecondModel) == 'true'
+var resourceTags = union(tags, {
   'azd-env-name': environmentName
   session: 'ill335'
-}
+})
 
 // ---------------------------------------------------------------------------
 // Resource Group
 // ---------------------------------------------------------------------------
 resource rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
-  name: '${abbrs.resourcesResourceGroups}${environmentName}'
+  name: resourceGroupName
   location: location
-  tags: tags
+  tags: resourceTags
 }
 
 // ---------------------------------------------------------------------------
@@ -83,7 +90,7 @@ module monitoring './modules/monitoring.bicep' = {
   scope: rg
   params: {
     location: location
-    tags: tags
+    tags: resourceTags
     logAnalyticsName: '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
     applicationInsightsName: '${abbrs.insightsComponents}${resourceToken}'
   }
@@ -97,9 +104,9 @@ module aiServices './modules/ai-services.bicep' = {
   scope: rg
   params: {
     location: location
-    tags: tags
+    tags: resourceTags
     aiServicesName: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
-    projectName: '${environmentName}-project'
+    projectName: foundryProjectName
     applicationInsightsId: monitoring.outputs.applicationInsightsId
     applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
     modelName: modelName
@@ -107,12 +114,10 @@ module aiServices './modules/ai-services.bicep' = {
     modelFormat: modelFormat
     modelSkuName: modelSkuName
     modelCapacity: modelCapacity
-    deploySecondModel: deploySecondModel
+    deploySecondModel: shouldDeploySecondModel
     secondModelName: secondModelName
     secondModelVersion: secondModelVersion
     secondModelCapacity: secondModelCapacity
-    enableHostedAgents: enableHostedAgents
-    enableCapabilityHost: enableCapabilityHost
   }
 }
 
@@ -126,7 +131,6 @@ module roleAssignments './modules/role-assignments.bicep' = if (!empty(principal
     principalId: principalId
     principalType: principalType
     aiServicesName: aiServices.outputs.aiServicesName
-    acrName: enableHostedAgents ? aiServices.outputs.acrName : ''
   }
 }
 
@@ -138,8 +142,7 @@ output AZURE_AI_SERVICES_NAME string = aiServices.outputs.aiServicesName
 output AZURE_AI_PROJECT_NAME string = aiServices.outputs.projectName
 output AZURE_AI_PROJECT_ID string = aiServices.outputs.projectId
 output AZURE_AI_PROJECT_ENDPOINT string = aiServices.outputs.projectEndpoint
+output FOUNDRY_PROJECT_ENDPOINT string = aiServices.outputs.projectEndpoint
 output AZURE_APPLICATION_INSIGHTS_NAME string = monitoring.outputs.applicationInsightsName
 output MODEL_DEPLOYMENT_NAME string = modelName
-output MODEL_DEPLOYMENT_NAME_2 string = deploySecondModel ? secondModelName : ''
-output AZURE_CONTAINER_REGISTRY_NAME string = enableHostedAgents ? aiServices.outputs.acrName : ''
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = enableHostedAgents ? aiServices.outputs.acrLoginServer : ''
+output MODEL_DEPLOYMENT_NAME_2 string = shouldDeploySecondModel ? secondModelName : ''

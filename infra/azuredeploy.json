@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.42.1.51946",
-      "templateHash": "14823912319595163397"
+      "templateHash": "10036618113069196075"
     }
   },
   "parameters": {
@@ -104,19 +104,6 @@
       ],
       "metadata": {
         "description": "Type of the principal referenced by principalId (User, ServicePrincipal, or Group)"
-      }
-    },
-    "enableHostedAgents": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Enable optional hosted-agent support infrastructure for ILL335"
-      }
-    },
-    "enableCapabilityHost": {
-      "type": "bool",
-      "metadata": {
-        "description": "Enable the optional compatibility capability host. The direct-code learner path uses platform-managed history."
       }
     }
   },
@@ -316,12 +303,6 @@
           },
           "secondModelCapacity": {
             "value": "[parameters('secondModelCapacity')]"
-          },
-          "enableHostedAgents": {
-            "value": "[parameters('enableHostedAgents')]"
-          },
-          "enableCapabilityHost": {
-            "value": "[parameters('enableCapabilityHost')]"
           }
         },
         "template": {
@@ -331,7 +312,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.42.1.51946",
-              "templateHash": "14868979147409335968"
+              "templateHash": "9717518187313840686"
             }
           },
           "parameters": {
@@ -424,25 +405,7 @@
               "metadata": {
                 "description": "Second model capacity"
               }
-            },
-            "enableHostedAgents": {
-              "type": "bool",
-              "defaultValue": false,
-              "metadata": {
-                "description": "Enable optional hosted-agent support infrastructure"
-              }
-            },
-            "enableCapabilityHost": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Enable the capability host for agent conversations. When false and hosted agents are enabled, the capability host is not created (v2 hosted agents handle storage automatically)."
-              }
             }
-          },
-          "variables": {
-            "cognitiveServicesUserRoleId": "a97b65f3-24c7-4388-baec-2e87135dc908",
-            "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d"
           },
           "resources": [
             {
@@ -549,68 +512,6 @@
                 "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
                 "[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('aiServicesName'), parameters('modelName'))]"
               ]
-            },
-            {
-              "condition": "[parameters('enableHostedAgents')]",
-              "type": "Microsoft.ContainerRegistry/registries",
-              "apiVersion": "2023-07-01",
-              "name": "[replace(parameters('aiServicesName'), '-', '')]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "sku": {
-                "name": "Basic"
-              },
-              "properties": {
-                "adminUserEnabled": true,
-                "publicNetworkAccess": "Enabled"
-              }
-            },
-            {
-              "condition": "[and(parameters('enableHostedAgents'), parameters('enableCapabilityHost'))]",
-              "type": "Microsoft.CognitiveServices/accounts/capabilityHosts",
-              "apiVersion": "2025-10-01-preview",
-              "name": "[format('{0}/{1}', parameters('aiServicesName'), 'agents')]",
-              "properties": {
-                "capabilityHostKind": "Agents",
-                "enablePublicHostingEnvironment": true
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.ContainerRegistry/registries', replace(parameters('aiServicesName'), '-', ''))]",
-                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
-                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName'))]"
-              ]
-            },
-            {
-              "condition": "[parameters('enableHostedAgents')]",
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
-              "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), parameters('projectName'), variables('cognitiveServicesUserRoleId'))]",
-              "properties": {
-                "principalId": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName')), '2025-06-01', 'full').identity.principalId]",
-                "principalType": "ServicePrincipal",
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('cognitiveServicesUserRoleId'))]"
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]",
-                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName'))]"
-              ]
-            },
-            {
-              "condition": "[parameters('enableHostedAgents')]",
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "scope": "[resourceId('Microsoft.ContainerRegistry/registries', replace(parameters('aiServicesName'), '-', ''))]",
-              "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', replace(parameters('aiServicesName'), '-', '')), parameters('projectName'), variables('acrPullRoleId'))]",
-              "properties": {
-                "principalId": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName')), '2025-06-01', 'full').identity.principalId]",
-                "principalType": "ServicePrincipal",
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('acrPullRoleId'))]"
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.ContainerRegistry/registries', replace(parameters('aiServicesName'), '-', ''))]",
-                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName'))]"
-              ]
             }
           ],
           "outputs": {
@@ -637,14 +538,6 @@
             "projectPrincipalId": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName')), '2025-06-01', 'full').identity.principalId]"
-            },
-            "acrName": {
-              "type": "string",
-              "value": "[if(parameters('enableHostedAgents'), replace(parameters('aiServicesName'), '-', ''), '')]"
-            },
-            "acrLoginServer": {
-              "type": "string",
-              "value": "[if(parameters('enableHostedAgents'), reference(resourceId('Microsoft.ContainerRegistry/registries', replace(parameters('aiServicesName'), '-', '')), '2023-07-01').loginServer, '')]"
             }
           }
         }
@@ -674,8 +567,7 @@
           },
           "aiServicesName": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.aiServicesName.value]"
-          },
-          "acrName": "[if(parameters('enableHostedAgents'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.acrName.value), createObject('value', ''))]"
+          }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -684,7 +576,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.42.1.51946",
-              "templateHash": "13961428632143909655"
+              "templateHash": "17062965270031828261"
             }
           },
           "parameters": {
@@ -711,19 +603,11 @@
               "metadata": {
                 "description": "Name of the AI Services resource to scope role assignments"
               }
-            },
-            "acrName": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "Name of the ACR resource (empty string skips ACR role)"
-              }
             }
           },
           "variables": {
             "cognitiveServicesOpenAIUserRoleId": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd",
-            "cognitiveServicesContributorRoleId": "25fbc0a9-bd7c-42a3-aa1a-3b75d497ee68",
-            "acrPushRoleId": "8311e382-0749-4cb8-b61a-304f252e45ec"
+            "cognitiveServicesContributorRoleId": "25fbc0a9-bd7c-42a3-aa1a-3b75d497ee68"
           },
           "resources": [
             {
@@ -745,18 +629,6 @@
               "properties": {
                 "principalId": "[parameters('principalId')]",
                 "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('cognitiveServicesContributorRoleId'))]",
-                "principalType": "[parameters('principalType')]"
-              }
-            },
-            {
-              "condition": "[not(empty(parameters('acrName')))]",
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "scope": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]",
-              "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName')), parameters('principalId'), variables('acrPushRoleId'))]",
-              "properties": {
-                "principalId": "[parameters('principalId')]",
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('acrPushRoleId'))]",
                 "principalType": "[parameters('principalType')]"
               }
             }
@@ -801,14 +673,6 @@
     "MODEL_DEPLOYMENT_NAME_2": {
       "type": "string",
       "value": "[if(parameters('deploySecondModel'), parameters('secondModelName'), '')]"
-    },
-    "AZURE_CONTAINER_REGISTRY_NAME": {
-      "type": "string",
-      "value": "[if(parameters('enableHostedAgents'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.acrName.value, '')]"
-    },
-    "AZURE_CONTAINER_REGISTRY_ENDPOINT": {
-      "type": "string",
-      "value": "[if(parameters('enableHostedAgents'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.acrLoginServer.value, '')]"
     }
   }
 }
