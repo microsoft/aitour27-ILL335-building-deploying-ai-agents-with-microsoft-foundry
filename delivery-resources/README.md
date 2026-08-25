@@ -2,9 +2,9 @@
 
 **Building & Deploying AI Agents with Microsoft Foundry**
 
-This folder contains everything a trainer, proctor, or session deliverer needs to run **ILL335** at AI Tour or to re-deliver it at user groups, internal enablement sessions, community events, and customer workshops.
+This folder contains the presenter and attendee decks plus the guidance needed to run **ILL335** at AI Tour or re-deliver it at user groups, internal enablement sessions, community events, and customer workshops.
 
-> 📄 [`LAB520-Train-the-Trainer.pdf`](LAB520-Train-the-Trainer.pdf) and [`LAB520-Attendee-Walkthrough.pdf`](LAB520-Attendee-Walkthrough.pdf) are retained legacy source materials. Their filenames and PDF contents are not rebranded; use the current Markdown instructions as the authoritative ILL335 guidance.
+The current lab is built for the AI Tour FY27 Skillable environment. Attendee projects and model deployments are pre-provisioned; self-paced presenters can use [`../setup/SETUP.md`](../setup/SETUP.md) to create an equivalent environment.
 
 ---
 
@@ -24,11 +24,11 @@ If you are an **attendee** working through the lab, start at the root [README](.
 | Block | Duration | Content type | Notes |
 |:------|:---------|:-------------|:------|
 | Introduction — Caldova scenario, what is Microsoft Foundry | 3 min | Speaker only | Set the story: attendees are an AI developer on Caldova's commercial digital and customer engagement team |
-| Lab 1: Discover Models in Microsoft Foundry | 10 min | Demo | Foundry portal walk-through, model catalog, quota |
-| Lab 2: Create and Configure a Foundry Project | 10 min | Demo | `setup.ps1` / `setup.sh` provisions everything via `azd` + Bicep |
+| Lab 1: Discover Models in Microsoft Foundry | 10 min | Guided lab | Foundry Toolkit model catalog and playground in VS Code |
+| Lab 2: Verify the Foundry Project | 5 min | Guided lab | Confirm `.env`, dependencies, CLI tools, and the pre-provisioned project |
 | Lab 3: Connect and Send Your First Inference | 12 min | Demo | `AIProjectClient` + `get_openai_client()` |
 | Lab 4: Build a Consumer Sentiment Analysis Application for Caldova | 20 min | Demo | Structured JSON prompt → governed routing logic → batch run |
-| Lab 6: Deploy a Hosted Agent | 15 min | Demo | `azd up` provisions the Foundry project and deploys Python source |
+| Lab 6: Deploy a Hosted Agent | 20 min | Guided lab | Test with Agent Inspector, then deploy Python source with `azd up` |
 | Lab 7: Summary, takeaways, Q&A, next steps | 5 min | Speaker only | Point to Lab 5 as self-paced extension |
 | **Total** | **75 min** | | |
 
@@ -42,7 +42,7 @@ Full timing detail is in [`../session-outline.md`](../session-outline.md).
 
 Reinforce these three messages at the start, in the middle, and at the close:
 
-1. Attendees can **discover, provision, and connect** to hosted models in Microsoft Foundry — zero to a working inference call in minutes.
+1. Attendees can **discover and connect** to hosted models in Microsoft Foundry — zero to a working inference call in minutes.
 2. Attendees can **build a production-quality consumer sentiment analysis pipeline** that returns structured JSON, with governed routing logic on top.
 3. Attendees can **deploy a hosted agent directly from Python source** with `azd up` and the `microsoft.foundry` provider.
 
@@ -53,12 +53,13 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 ## ✅ Pre-session checklist (do this 24–48 hours before delivery)
 
 ### Trainer environment
-- [ ] Clone the repo locally and complete the full lab end-to-end yourself **at least once** on the exact machine you will demo from.
-- [ ] Verify Python 3.10+, Azure CLI, Azure Developer CLI (`azd`), and Git are installed and on PATH.
-- [ ] Sign in: `az login` and `azd auth login` — confirm the subscription you are using has quota for **gpt-5.4-mini** in your chosen region (see [setup/SETUP.md](../setup/SETUP.md) and [setup/armsetup.md](../setup/armsetup.md)).
-- [ ] Run `.\scripts\setup.ps1` (or `./scripts/setup.sh`) and confirm a clean provision. Capture the resource group name — you may want to leave it provisioned to skip Lab 2 wait time on stage.
-- [ ] Run `src/01_first_inference.py`, `src/02_sentiment_analysis.py`, and the agent in `src/agent/` to confirm everything works.
-- [ ] Install the current extension bundle with `azd ext install microsoft.foundry`, then run `azd up` once in the trainer environment.
+- [ ] Complete the Skillable lab end-to-end **at least once** on the exact machine and tenant used for delivery.
+- [ ] Confirm the repository opens from `C:\Users\LabUser\Desktop\AI-Tour-ILL335-main` and the Foundry Toolkit is installed and signed in.
+- [ ] Run `python -X utf8 src/tests/validate_lab.py` and confirm the result is `PASS` with zero failed checks.
+- [ ] Run `src/01_first_inference.py`, `src/02_sentiment_analysis.py`, and the local agent flow to confirm the pre-provisioned endpoint and model work.
+- [ ] Verify Azure CLI and `azd` are authenticated to the same tenant and subscription.
+- [ ] Confirm `azd` 1.27.1 or later and install the current extension bundle with `azd ext install microsoft.foundry`.
+- [ ] Run `azd up` once in a trainer environment so you know the deployment duration and expected output. This creates billable Azure resources.
 
 ### Slides, screen, network
 - [ ] Confirm the slide deck version matches the lab version (check the title slide against `session-outline.md`).
@@ -67,11 +68,11 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 - [ ] Have the Foundry portal ([ai.azure.com](https://ai.azure.com)) signed in on a separate tab/window.
 - [ ] Test your microphone, screen share, and recording (if applicable).
 
-### Attendee environment (hands-on lab rooms)
-- [ ] Confirm with the lab venue that each attendee VM/seat has Python 3.10+, Azure CLI, `azd`, Git, and VS Code.
-- [ ] Confirm each attendee has a pre-assigned Azure subscription or pass-through credentials with **Contributor** + **Cognitive Services Contributor** on the target subscription/RG.
-- [ ] Confirm model quota is available in the region used by the seat assignments.
-- [ ] Print or pin the [setup guide](../setup/SETUP.md) and [Lab 1 link](../docs/lab1-discover-models.md) on every seat.
+### Attendee environment (Skillable lab rooms)
+- [ ] Confirm each seat can sign in to the VM and that the Azure username, password or Temporary Access Pass, and VM password appear in the Skillable instructions panel.
+- [ ] Confirm the repo is already cloned, `.env` is configured, and the Foundry project includes the **gpt-5.4-mini** deployment.
+- [ ] Confirm the Foundry Toolkit, Python, Azure CLI, `azd`, Git, and VS Code are available on every VM.
+- [ ] Keep the [Skillable guide](../docs/skillable/skillable.md) and [Lab 1](../docs/lab1-discover-models.md) available to proctors.
 
 ### Proctors
 - [ ] Make sure every proctor has done the lab themselves at least once.
@@ -91,28 +92,21 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 
 ### Lab 1 — Discover Models (10 min)
 
-- Open [ai.azure.com](https://ai.azure.com), navigate the **Model Catalog**.
+- Open the **Foundry Toolkit** in VS Code and navigate to **Developer Tools → Model Catalog**.
 - Talk through filters: provider, capability (chat, embeddings), modality, deployment options.
 - Compare **gpt-5.4-mini**, **gpt-5.4**, and **Phi-4** — frame as "cost, latency, quality" trade-off.
-- Show **quota** and **regional availability** — call out that quota is per region per model.
-- Optional: paste a piece of Caldova consumer feedback into the **Playground** and show a sentiment analysis response.
+- Open the model card and point out details, benchmarks, Responsible AI, and licensing.
+- Optional: paste a piece of Caldova consumer feedback into the Toolkit **Model Playground** and show a sentiment label.
 
 **Common attendee question:** *"How do I know which model to choose?"* — Answer: start with the cheapest model that meets your quality bar, then measure. Lab 5 shows the comparison workflow.
 
-### Lab 2 — Create and Configure a Foundry Project (10 min)
+### Lab 2 — Verify the Foundry Project (5 min)
 
-- Show what the `setup.ps1` / `setup.sh` script does at a high level before running:
-  - AI Services account
-  - Foundry project
-  - Model deployment (gpt-5.4-mini)
-  - Monitoring (App Insights / Log Analytics)
-  - RBAC role assignments
-  - Local `.env` file
-- Run the script live **only if** you have time and a fast network. Otherwise, run it on a pre-staged subscription and walk through the output.
-- Open `infra/main.bicep` and `azure.yaml` — explain why Infrastructure-as-Code matters (reproducibility, review, source control).
-- Show the resulting resource group in the Azure portal — point out the named resources.
-
-**Time saver:** Pre-provision a resource group on a side subscription so a slow live provision does not block the session.
+- Explain that Skillable has already provisioned the attendee project and model deployment.
+- Confirm `.env` contains `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME`. Do not display their values on a shared screen.
+- Run `python -X utf8 src/tests/validate_lab.py`.
+- Confirm the output ends with zero failed checks and `Result: PASS -- lab is ready!`.
+- If a check fails, use the message from the validator rather than reprovisioning the environment.
 
 ### Lab 3 — First Inference (12 min)
 
@@ -141,14 +135,14 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 
 **Don't skip:** the confidence threshold conversation and the reminder that the model must never determine causality, assess seriousness, or give medical advice. This is the most-cited takeaway from previous deliveries.
 
-### Lab 6 — Deploy a Hosted Agent (15 min)
+### Lab 6 — Deploy a Hosted Agent (20 min)
 
 - Open `src/agent/app.py` and walk through `FoundryChatClient`, `ResponsesHostServer`, and `default_options={"store": False}`.
 - Open `azure.yaml` and highlight direct code deployment, Python 3.13, and Responses protocol 2.0.0.
-- Run `azd up`. Explain that the `microsoft.foundry` provider provisions the project and model, then hosts the Python source on managed infrastructure.
-- When deployment finishes, invoke the agent:
-  - Via CLI: `azd ai agent invoke`
-  - Via the Foundry **Playground** in the portal — show the live request/response
+- Press **F5** with **Debug Agent with Agent Inspector** and verify one local JSON response before cloud deployment.
+- Run `azd up` for the first deployment. Explain that the `microsoft.foundry` provider provisions the project and model, then remotely builds and hosts the Python source on managed infrastructure.
+- When deployment finishes, check `azd ai agent show --output json`, then invoke the agent with `azd ai agent invoke caldova-consumer-sentiment-agent "The delivery was late, but support kept me informed."`.
+- Use `azd deploy` only for later code-only updates to an environment already provisioned by this project.
 - Optional: tail logs from the agent to show observability.
 - Optional self-paced extension: generate a structured evaluation with `azd ai agent eval generate`, inspect `eval.yaml` and its rubric, then run it with `azd ai agent eval run`.
 - Contrast the generated cases with `src/agent/evals/caldova-golden.jsonl`: generated data expands coverage, while curated cases protect regulated-routing behavior across versions.
@@ -157,7 +151,7 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 
 **Cost and timing note:** evaluation generation is a billable preview feature and can take several minutes. Do not include it in the core 75-minute delivery unless the deployment finishes early.
 
-### Lab 7 — Wrap, takeaways, Q&A (5 min)
+### Lab 7 — Wrap, takeaways, Q&A (5 min live; 10 min self-paced module)
 
 - Recap the journey in one breath: *catalog → project → first call → consumer sentiment analysis pipeline → hosted agent.*
 - Call out **Lab 5** as a self-paced extension — attendees compare gpt-5.4-mini vs gpt-5.4 at home, including the hybrid "cheap first, escalate when uncertain" pattern.
@@ -219,8 +213,8 @@ You are welcome and encouraged to re-deliver this content. A few asks:
 
 ## 📚 Related resources
 
-- [`LAB520-Train-the-Trainer.pdf`](LAB520-Train-the-Trainer.pdf) — legacy source deck; its content is not rebranded
-- [`LAB520-Attendee-Walkthrough.pdf`](LAB520-Attendee-Walkthrough.pdf) — legacy attendee source; its content is not rebranded
+- [`ILL335-Train-the-Trainer-FY27.pptx`](ILL335-Train-the-Trainer-FY27.pptx) — presenter readiness, timing, checkpoints, and recovery guidance
+- [`ILL335-Attendee-Walkthrough-FY27.pptx`](ILL335-Attendee-Walkthrough-FY27.pptx) — attendee welcome and lab journey deck
 - [`../session-outline.md`](../session-outline.md) — official session outline with timing per block
 - [`../techspec.md`](../techspec.md) — technical specification for the lab
 - [`../setup/SETUP.md`](../setup/SETUP.md) — attendee setup guide
