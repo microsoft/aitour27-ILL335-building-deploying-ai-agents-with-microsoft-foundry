@@ -23,10 +23,9 @@ Explore the Foundry Toolkit model catalog in Visual Studio Code to discover avai
 
 1. Open Visual Studio Code by launching it from the Start menu or desktop.
 2. In VS Code, select **File → Open Folder**.
-3. Navigate to the `Desktop` folder, select `AI-Tour-ILL335-main`, and click **Select folder**.
+3. Navigate to the `Desktop` folder, select `ILL335`, and click **Select folder**.
 4. When prompted with "Do you trust the authors of the files in this folder?", select **Yes, I trust the authors**.
-
-    !IMAGE[trust.png](instructions343795/trust.png)
+!IMAGE[trust.png](instructions356855/trust.png)
 5. You should see the project files in the sidebar.
 
 ## Step 2: Open the Foundry Toolkit in Visual Studio Code
@@ -35,7 +34,7 @@ The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already insta
 
 1. In the **Activity Bar** on the left, click the **Foundry Toolkit** icon to open the toolkit panel.
 
-    !IMAGE[Foundry Toolkit Icon](instructions343795/ftk_icon.png)
+    !IMAGE[ftk_icon.png](instructions356855/ftk_icon.png)
 2. Click **Set Foundry Project → Switch Project → Sign in to Azure**.
 3. When prompted to sign in to Azure to access your Foundry resources, use the following Azure credentials:
 
@@ -51,8 +50,7 @@ The toolkit panel is your central hub for browsing models, testing them in a pla
 ## Step 3: Explore the model catalog
 
 1. In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog** to open the model catalog view. These are production-ready, hosted models you can use without fine-tuning.
-
-    !IMAGE[Model Catalog](instructions343795/model_catalog.png)
+!IMAGE[modelcatalog.png](instructions356855/modelcatalog.png)
 2. Browse the available models. Use the filters at the top of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
 
 Select a model to view its model card. Take note of the following properties.
@@ -60,9 +58,10 @@ Select a model to view its model card. Take note of the following properties.
 | Property | Common values |
 |----------|---------------|
 | Model provider | Azure OpenAI, Microsoft AI, Meta, Mistral, etc. |
-| Task type | Responses, embeddings, text to image |
-| Input type | text, image |
-| Output type | text, image |
+| Feature | Web Searcd, Structured Output, Image Attachment, etc |
+| Publisher| Anthropic, Cohere, Deepseek, OpenAI, etc |
+| Out!
+!IMAGE[model_catalog.png](instructions356855/model_catalog.png)put type | text, image |
 | Context window | Varies by model (see model card) |
 | Token limits | Varies by model (see model card) |
 
@@ -84,7 +83,11 @@ Recommended models for this lab:
 
 The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-efficient, which makes it ideal for Caldova's consumer sentiment analysis pipeline.
 
-Find **gpt-5.4-mini** in the catalog and open its detail page. Explore the tabs at the top:
+Find **gpt-5.4-mini** in the catalog and open its detail page. 
+
+Use the search on Find the Right Model for your AI Solution 
+!IMAGE[findmodel.png](instructions356855/findmodel.png)
+Explore the tabs at the top:
 
 1. **Details** -- Model description and capabilities
 2. **Benchmarks** -- Scores and performance metrics
@@ -347,7 +350,7 @@ Do not include sensitive personal or medical data in prompts. For production wor
 
 ## Objective
 
-Build a working consumer sentiment analysis pipeline for Caldova's B2C engagement channels. The system accepts customer-submitted product reviews, classifies them using a Foundry-hosted model, applies moderation logic, and outputs structured results — ensuring that reviews from customers are safe and helpful before going live on the site.
+Build a working consumer sentiment analysis pipeline for Caldova's B2C engagement channels. The system accepts customer-submitted product reviews, classifies them using a Foundry-hosted model, applies moderation logic, and outputs structured results - ensuring that reviews from customers are safe and helpful before going live on the site.
 
 ## The problem
 
@@ -402,7 +405,7 @@ This prompt:
 - **Separates two independent signals** -- sentiment (how the consumer feels) and review_category (whether the content needs regulated handling).
 - **Provides classification rules** -- reduces ambiguity.
 - **Explicitly limits the model's role** -- it must not determine causality, assess seriousness, or give medical advice; that stays with trained human reviewers.
-- **Eliminates free-text noise** -- "Do not include any text outside the JSON object".
+**Eliminates free-text noise** -- "Do not include any text outside the JSON object".
 
 ## Step 2: Understand the sentiment analysis pipeline
 
@@ -880,7 +883,7 @@ infra:
 
 ## Install agent dependencies
 
-> This step is shared by both Part A and Part B — do it once before you start.
+> This step is shared by both Part A and Part B - do it once before you start.
 
 The agent uses packages that are separate from the main lab requirements, and both deployment paths need them. Install them first:
 
@@ -1157,6 +1160,7 @@ You started with a model in a catalog and finished with a production-ready hoste
 If you encountered any issues during this lab or would like to try it self-paced, see the repository issues page.
 
 !IMAGE[Report issues](../images/issues.png)
+Please create a issue on the repo
 
 Happy building!
 | `azure.yaml` | Direct-code hosted-agent configuration |
