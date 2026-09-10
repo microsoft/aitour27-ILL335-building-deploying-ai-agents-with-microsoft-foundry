@@ -31,6 +31,11 @@ Explore the Foundry Toolkit model catalog in Visual Studio Code to discover avai
 !IMAGE[trust.png](instructions356855/trust.png)
 5. You should see the project files in the sidebar.
 
+> **Note:** If you don't see the screen above - with the question "Do you trust the authors of the files in this folder?" - but you see a "Restricted Mode" alert on the top, click on "Manage" and then "Trust".
+    
+    !IMAGE[restricted_mode_alert.png](instructions356855/restricted_mode_alert.png)
+
+
 ## Step 2: Open the Foundry Toolkit in Visual Studio Code
 
 The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already installed on the lab virtual machine, so you can explore models without leaving your editor -- no web browser required.
@@ -39,65 +44,58 @@ The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already insta
 
     !IMAGE[ftk_icon.png](instructions356855/ftk_icon.png)
 2. Click **Set Foundry Project → Switch Project → Sign in to Azure**.
-3. When prompted to sign in to Azure to access your Foundry resources, use the following Azure credentials:
+3. Confirm you want to sign in, by clicking on **Allow**.
+
+    !IMAGE[confirm_login.png](instructions356855/confirm_login.png)
+4. When prompted to sign in to Azure to access your Foundry resources, use the following Azure credentials:
 
     Username: +++@lab.CloudPortalCredential(User1).Username+++
 
     If prompted for a Temporary Access Pass (TAP): +++@lab.CloudPortalCredential(User1).AccessToken+++
 
     If prompted for a Password: +++@lab.CloudPortalCredential(User1).Password+++
-4. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
+5. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
 
 The toolkit panel is your central hub for browsing models, testing them in a playground, and working with agents -- all from within VS Code.
 
 ## Step 3: Explore the model catalog
 
-1. In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog** to open the model catalog view. These are production-ready, hosted models you can use without fine-tuning.
-!IMAGE[modelcatalog.png](instructions356855/modelcatalog.png)
-2. Browse the available models. Use the filters at the top of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
+In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog** to open the model catalog view. These are production-ready, hosted models you can use without fine-tuning.
 
-Select a model to view its model card. Take note of the following properties.
+    !IMAGE[model_catalog.png](instructions356855/model_catalog.png)
+    
+> **Tip:** You can close the GitHub Copilot Chat window on the right side of the editor for now to have more space to explore the model catalog.
 
-| Property | Common values |
-|----------|---------------|
-| Model provider | Azure OpenAI, Microsoft AI, Meta, Mistral, etc. |
-| Feature | Web Searcd, Structured Output, Image Attachment, etc |
-| Publisher| Anthropic, Cohere, Deepseek, OpenAI, etc |
-| Output type | text, image |
-| Context window | Varies by model (see model card) |
-| Token limits | Varies by model (see model card) |
+Browse the available models. Use the filters at right-side of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
 
-!IMAGE[model_catalog.png](instructions356855/model_catalog.png)
+    !IMAGE[filters.png](instructions356855/filters.png)
 
-## Step 4: Identify a model for this lab
+Select a model to view its model card. This will open a browser page with model's details. 
 
-For this workshop, you need a model that supports the **Responses API** -- the ability to accept instructions and input and return structured response text.
+> **Note:** This section is meant to make you familiarize with the model catalog and how to explore model details. You don't need to deploy any model, as the model you are going to use later in the lab is already pre-provisioned in the Foundry project you selected as workspace.
 
-Recommended models for this lab:
+The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-efficient, which makes it ideal for Caldova's consumer sentiment analysis pipeline. To find the model and view its details follow these steps:
 
-| Model | Publisher | Why |
-|-------|-----------|-----|
-| gpt-5.4-mini | OpenAI | Fast, cost-efficient, excellent for sentiment classification |
-| gpt-5.4 | OpenAI | Higher quality, good for complex or ambiguous feedback |
-| Phi-4 | Microsoft | Strong reasoning, open-weight |
+1. Apply the filters **Hosted by** -> **Foundry** and **Publisher** -> **OpenAI**. 
+2. Type **gpt-5.4-mini** in the search bar to locate the model.
 
-> **Tip:** gpt-5.4-mini is the best choice for this lab -- it is fast, inexpensive, and well-suited for sentiment analysis and classification tasks.
+    !IMAGE[findmodel.png](instructions356855/findmodel.png)
+3. Click on the model name to open the model card and explore its details. You'll see 4 main tabs:
 
-## Step 5: Check model details
+    - **Details** -- Model description and capabilities
+    - **Benchmarks** -- Scores and performance metrics
+    - **Responsible AI** -- Guardrails imposed on the model from Azure AI Content Safety
+    - **License** -- Links to applicable licensing terms
 
-The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-efficient, which makes it ideal for Caldova's consumer sentiment analysis pipeline.
+    More properties are listed in the table on the right side of the model card.
 
-Find **gpt-5.4-mini** in the catalog and open its detail page. 
-
-Use the search on Find the Right Model for your AI Solution 
-!IMAGE[findmodel.png](instructions356855/findmodel.png)
-
-Explore the tabs at the top:
-
-1. **Details** -- Model description and capabilities
-2. **Benchmarks** -- Scores and performance metrics
-3. **Responsible AI** -- Guardrails imposed on the model from Azure AI Content Safety
-4. **License** -- Links to applicable licensing terms
+    | Property | Common values |
+    |----------|---------------|
+    | Type | Chat completion, Responses, etc |
+    | Publisher| Anthropic, Cohere, Deepseek, OpenAI, etc |
+    | Output type | text, image, code, etc |
+    | Context window | Varies by model (see model card) |
+    | Token limits | Varies by model (see model card) |
 
 > **Note:** The model card is opened in a web browser page. Make sure to return to VS Code after reviewing it to continue with the lab.
 
@@ -105,6 +103,7 @@ Explore the tabs at the top:
 
 1. Back in VS Code, under **Developer Tools → Build** in the toolkit panel, open the **Model Playground**.
 2. Select **gpt-5.4-mini** from the model dropdown.
+> **Note:** You see this model listed because it is pre-provisioned in your Foundry project. You do not need to deploy it yourself.
 3. In the **System prompt** (instructions) field, enter:
 
     ```text
@@ -139,7 +138,7 @@ Validate that your lab project environment is configured correctly -- ensuring t
 
 ## Step 1: Validate the .env is correct
 
-In VS Code, ensure that the `.env` file has been created in the root of your project.
+In VS Code, navigate to the file explorer and ensure that the `.env` file has been created in the root of your project.
 
 1. Open the `.env` file from the root of the project folder.
 2. Confirm the following variables exist:
@@ -151,6 +150,10 @@ In VS Code, ensure that the `.env` file has been created in the root of your pro
 
     You may also see `MODEL_DEPLOYMENT_NAME_2`, which is optional for the model comparison lab.
 3. (Optional) Confirm the values are correct according to your Foundry project. `PROJECT_ENDPOINT` should match the project endpoint listed at https://ai.azure.com, and `MODEL_DEPLOYMENT_NAME` should match the name of the model deployment.
+
+> **Tip:** To confirm the project endpoint, navigate to https://ai.azure.com, from the VM browser and sign in, with the credentials you used to configure your project in the Foundry Toolkit extension. You'll see the project endpoint on the project home page. 
+
+    !IMAGE[foundry_project_home.png](instructions356855/foundry_project_home.png)
 
 ## Step 2: Validate your setup
 
@@ -317,7 +320,7 @@ Observe whether the response follows both the durable instructions and the curre
 
 ## Step 4: Try multi-turn continuity
 
-The Responses API can continue from an earlier response by passing its ID. In a temporary experiment, add a follow-up after the first request:
+The Responses API can continue from an earlier response by passing its ID. In a temporary experiment, add a follow-up after the first request. Paste the following code at the end of the main() function in your script:
 
 ```python
 follow_up = inference_client.responses.create(
@@ -446,7 +449,7 @@ def analyze_feedback(client, model: str, feedback: str) -> dict:
             "sentiment": "MIXED",
             "confidence": 0.0,
             "topics": ["OTHER"],
-            "review_category": "CONTENT_SAFETY",
+            "review_category": "NONE",
             "summary": f"Model returned non-JSON output: {raw[:100]}",
         }
 ```
@@ -459,14 +462,14 @@ Key design decisions:
 | JSON output format | Machine-parseable, no regex needed |
 | Structured system prompt | Reliable, consistent categorization |
 | try/except around inference | Catches Azure content safety filter blocks gracefully |
-| try/except around json.loads() | Falls back to a conservative CONTENT_SAFETY result if the model returns malformed output |
+| try/except around json.loads() | Falls back to a default NONE result if the model returns malformed output |
 
 ### 2b. Apply governed routing logic
 
 ```python
 def route_feedback(result: dict) -> str:
     """Route insights to analytics or an appropriate human review queue."""
-    review_category = result.get("review_category", "CONTENT_SAFETY")
+    review_category = result.get("review_category", "NONE")
     confidence = result.get("confidence", 0.0)
 
     if review_category != "NONE":
@@ -495,7 +498,7 @@ def process_feedback(client, model: str, feedback: str) -> dict:
         "sentiment": analysis.get("sentiment", "MIXED"),
         "confidence": analysis.get("confidence", 0.0),
         "topics": analysis.get("topics", ["OTHER"]),
-        "review_category": analysis.get("review_category", "CONTENT_SAFETY"),
+        "review_category": analysis.get("review_category", "NONE"),
         "summary": analysis.get("summary", ""),
         "action": route_feedback(analysis),
     }
@@ -543,7 +546,7 @@ Total feedback: 5
   NEUTRAL:     0
   NEGATIVE:    2
   MIXED:       2
-  ESCALATED:   2
+  ESCALATED:   3
 ```
 
 > **Note:** Some feedback containing threats or explicit content may be blocked by Azure's built-in content safety filter *before* reaching the model. When this happens, the application handles it gracefully and labels the result with review_category CONTENT_SAFETY. This is expected behavior -- the content filter is an additional layer of protection in production deployments.
@@ -556,14 +559,20 @@ The application also accepts interactive input. Run it with the `--interactive` 
 python src/02_sentiment_analysis.py --interactive
 ```
 
-Type feedback to analyze it in real time:
+Type feedback to analyze it in real time
 
 ```text
-Enter feedback: What dose should I give my child?
-Sentiment: NEUTRAL (confidence: 0.85)
-Topics: PRODUCT_EXPERIENCE
+What dose should I give my child?
+```
+
+You should get something similar to:
+
+```text
+Feedback: "What dose should I give my child?"
+Sentiment: NEUTRAL (confidence: 0.98)
+Topics: OTHER
 Review category: MEDICAL_INQUIRY
-Summary: Consumer asks for personalized dosing guidance.
+Summary: The user is asking for personalized dosing guidance for a child, which is a medical inquiry. No product experience or support issue is described.
 Action: ⚠️ ESCALATE_FOR_REVIEW
 ```
 
@@ -585,7 +594,7 @@ Try adjusting the confidence threshold in the `route_feedback` function:
 |-----------------|--------|
 | Lower the confidence threshold (0.8 → 0.6) | More feedback goes straight to the dashboard |
 | Raise the confidence threshold (0.8 → 0.9) | More feedback routed for a low-confidence human check |
-| Add a new topic-based routing rule | Custom handling for a specific topic, such as VALUE |
+| Add a new topic-based routing rule | Custom handling for a specific topic |
 
 After each change, re-run the sentiment analysis script to see the effect on the same 5 sample feedback items.
 
