@@ -99,7 +99,7 @@ try {
     Remove-Item Env:AZURE_RESOURCE_GROUP -ErrorAction SilentlyContinue
 
     $labPath = @(
-        "C:\Users\LabUser\Desktop\IL335"
+        "C:\Users\LabUser\Desktop\ILL335"
     ) | Where-Object { Test-Path $_ } | Select-Object -First 1
     if (-not $labPath) {
         throw "Lab folder not found. Expected AI-Tour-ILL335-main or ILL335 on the LabUser desktop."
