@@ -20,9 +20,9 @@ A hosted agent is your agent application running on Foundry-managed infrastructu
 
 ## Architecture
 
-The Foundry Toolkit and `azd` build your agent code into the hosted service and deploy it to Foundry Agent Service. At runtime, the platform provisions a sandbox and exposes a dedicated endpoint that your agent uses to call Foundry models.
+The Foundry Toolkit runs the agent locally for inspection, while `azd` packages and deploys the source to Foundry Agent Service. At runtime, the platform provisions a sandbox and exposes a dedicated endpoint that your agent uses to call Foundry models.
 
-![Hosted agent architecture](../images/mermaid_diagram2.png)
+![Direct-code hosted agent architecture](images/mermaid_diagram2.png)
 
 | Property | This lab |
 |----------|----------|
