@@ -112,7 +112,7 @@ def test_file_structure():
         if path.exists():
             record(f"File exists: {f}", "PASS")
         else:
-            record(f"File exists: {f}", "FAIL", "Missing")
+            record(f"File exists: {f}", "FAIL", f"Missing at {path}")
 
 
 # =========================================================================
