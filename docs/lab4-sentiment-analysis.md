@@ -20,7 +20,7 @@ Sentiment classification and regulated routing are **independent** of each other
 
 ## Architecture
 
-![architecture_lab520.png](../images/architecture_lab520.png)
+![Caldova sentiment analysis and governed routing architecture](images/architecture.png)
 
 This pipeline uses **prompt-based JSON**: the system prompt instructs the model to respond only with valid JSON. For even stricter guarantees, OpenAI models support [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), a `response_format` parameter that constrains the model to conform to a JSON schema. This lab uses the prompt-based approach for simplicity and portability across model providers.
 
