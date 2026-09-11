@@ -56,6 +56,26 @@ def test_calculate_cost_uses_api_billing_units():
     assert cost == pytest.approx(0.0016)
 
 
+def test_published_global_pricing_uses_current_usd_rates():
+    pricing = mod.get_published_global_pricing("gpt-5.4-mini")
+
+    assert pricing["input"]["retail_price"] == 0.75
+    assert pricing["output"]["retail_price"] == 4.50
+    assert pricing["input"]["tokens_per_unit"] == 1_000_000
+    assert pricing["source"] == "Azure OpenAI pricing page"
+
+
+def test_load_model_pricing_falls_back_when_api_meter_is_missing(monkeypatch):
+    monkeypatch.setattr(mod, "get_model_pricing", lambda *args: None)
+
+    pricing_by_model, errors = mod.load_model_pricing(
+        ["gpt-5.4-mini", "gpt-5.4"], "eastus2"
+    )
+
+    assert set(pricing_by_model) == {"gpt-5.4-mini", "gpt-5.4"}
+    assert errors == {}
+
+
 def test_calculate_savings_uses_observed_run_costs():
     savings = mod.calculate_savings({"gpt-5.4-mini": 0.01, "gpt-5.4": 0.04})
 

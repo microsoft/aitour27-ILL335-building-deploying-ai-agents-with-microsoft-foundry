@@ -21,8 +21,10 @@ from agent_framework.foundry import FoundryChatClient
 from agent_framework_foundry_hosting import ResponsesHostServer
 from azure.identity import DefaultAzureCredential
 
-PROJECT_ENDPOINT = os.getenv("FOUNDRY_PROJECT_ENDPOINT") or os.getenv(
-    "AZURE_AI_PROJECT_ENDPOINT"
+PROJECT_ENDPOINT = (
+    os.getenv("FOUNDRY_PROJECT_ENDPOINT")
+    or os.getenv("AZURE_AI_PROJECT_ENDPOINT")
+    or os.getenv("PROJECT_ENDPOINT")
 )
 MODEL_DEPLOYMENT_NAME = os.getenv("AZURE_AI_MODEL_DEPLOYMENT_NAME") or os.getenv(
     "MODEL_DEPLOYMENT_NAME", "gpt-5.4-mini"
@@ -30,7 +32,7 @@ MODEL_DEPLOYMENT_NAME = os.getenv("AZURE_AI_MODEL_DEPLOYMENT_NAME") or os.getenv
 
 if not PROJECT_ENDPOINT:
     print(
-        "ERROR: FOUNDRY_PROJECT_ENDPOINT or AZURE_AI_PROJECT_ENDPOINT not set",
+        "ERROR: PROJECT_ENDPOINT is not set",
         flush=True,
     )
     sys.exit(1)
