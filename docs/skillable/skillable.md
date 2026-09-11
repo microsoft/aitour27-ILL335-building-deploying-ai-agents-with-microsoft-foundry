@@ -33,7 +33,7 @@ Explore the Foundry Toolkit model catalog in Visual Studio Code to discover avai
 
 > **Note:** If you don't see the screen above - with the question "Do you trust the authors of the files in this folder?" - but you see a "Restricted Mode" alert on the top, click on "Manage" and then "Trust".
     
-    !IMAGE[restricted_mode_alert.png](instructions356855/restricted_mode_alert.png)
+!IMAGE[restricted_mode_alert.png](instructions356855/restricted_mode_alert.png)
 
 
 ## Step 2: Open the Foundry Toolkit in Visual Studio Code
@@ -62,13 +62,13 @@ The toolkit panel is your central hub for browsing models, testing them in a pla
 
 In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog** to open the model catalog view. These are production-ready, hosted models you can use without fine-tuning.
 
-    !IMAGE[model_catalog.png](instructions356855/model_catalog.png)
+!IMAGE[model_catalog.png](instructions356855/model_catalog.png)
     
 > **Tip:** You can close the GitHub Copilot Chat window on the right side of the editor for now to have more space to explore the model catalog.
 
 Browse the available models. Use the filters at the top of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
 
-    !IMAGE[filters.png](instructions356855/filters.png)
+!IMAGE[filters.png](instructions356855/filters.png)
 
 Select a model to view its model card. This will open a browser page with model's details. 
 
@@ -156,8 +156,7 @@ In VS Code, navigate to the file explorer and ensure that the `.env` file has be
 
 > **Tip:** To confirm the project endpoint, navigate to https://ai.azure.com, from the VM browser and sign in, with the credentials you used to configure your project in the Foundry Toolkit extension. You'll see the project endpoint on the project home page. 
 
-    !IMAGE[foundry_project_home.png](instructions356855/foundry_project_home.png)
-
+!IMAGE[foundry_project_home.png](instructions356855/foundry_project_home.png)
 ## Step 2: Validate your setup
 
 Run the included validation script to confirm that all files, dependencies, CLI tools, and configuration are correct:
@@ -452,7 +451,7 @@ def analyze_feedback(client, model: str, feedback: str) -> dict:
             "sentiment": "MIXED",
             "confidence": 0.0,
             "topics": ["OTHER"],
-            "review_category": "NONE",
+            "review_category": "CONTENT_SAFETY",
             "summary": f"Model returned non-JSON output: {raw[:100]}",
         }
 ```
@@ -465,14 +464,14 @@ Key design decisions:
 | JSON output format | Machine-parseable, no regex needed |
 | Structured system prompt | Reliable, consistent categorization |
 | try/except around inference | Catches Azure content safety filter blocks gracefully |
-| try/except around json.loads() | Falls back to a default NONE result if the model returns malformed output |
+| try/except around json.loads() | Falls back to a conservative CONTENT_SAFETY result if the model returns malformed output |
 
 ### 2b. Apply governed routing logic
 
 ```python
 def route_feedback(result: dict) -> str:
     """Route insights to analytics or an appropriate human review queue."""
-    review_category = result.get("review_category", "NONE")
+    review_category = result.get("review_category", "CONTENT_SAFETY")
     confidence = result.get("confidence", 0.0)
 
     if review_category != "NONE":
@@ -501,7 +500,7 @@ def process_feedback(client, model: str, feedback: str) -> dict:
         "sentiment": analysis.get("sentiment", "MIXED"),
         "confidence": analysis.get("confidence", 0.0),
         "topics": analysis.get("topics", ["OTHER"]),
-        "review_category": analysis.get("review_category", "NONE"),
+        "review_category": analysis.get("review_category", "CONTENT_SAFETY"),
         "summary": analysis.get("summary", ""),
         "action": route_feedback(analysis),
     }
@@ -654,7 +653,7 @@ AZURE_PRICING_CURRENCY=USD
 ```
 
 To complete this lab, you also need the `gpt-5.4` deployment described below.
-To compare models pricing, we are going to use the Azure Retail Prices API. This API is public, so it does not require another API key or sign-in.
+To compare model pricing, the script first uses the Azure Retail Prices API. This API is public, so it does not require another API key or sign-in. If the newly released GPT-5.4 meters are not yet present, the script uses the published Global Standard USD rates from the Azure OpenAI pricing page and labels that fallback in the output.
 
 ### Deploying a new model
 
@@ -674,7 +673,7 @@ Wait for the deployment to complete before proceeding. You should see the pop-up
 
 ## Step 1: Review the comparison code
 
-Open `src/03_model_comparison.py`. The script retrieves current input and output token rates from the unauthenticated [Azure Retail Prices API](https://learn.microsoft.com/rest/api/cost-management/retail-prices/azure-retail-prices), then runs the same feedback through each model:
+Open `src/03_model_comparison.py`. The script retrieves input and output token rates from the unauthenticated [Azure Retail Prices API](https://learn.microsoft.com/rest/api/cost-management/retail-prices/azure-retail-prices), with a dated fallback to the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) for the two Global Standard lab models, then runs the same feedback through each model:
 
 ```python
 def compare_models(client, models, feedback, pricing_by_model=None):
@@ -725,10 +724,12 @@ Feedback: "I felt dizzy after taking the Caldova allergy relief tablets."
   Avg latency - gpt-5.4-mini: 311ms
   Avg latency - gpt-5.4:      868ms
 
-    Retail pricing: USD in <managed-lab-region> (Azure Retail Prices API)
-    gpt-5.4-mini rates: input $<current-rate>/1K, output $<current-rate>/1K
+    Pricing estimate: USD (Azure published retail rates)
+    gpt-5.4-mini pricing source: Azure OpenAI pricing page, verified <date>
+    gpt-5.4-mini rates: input $<current-rate>/1M tokens, output $<current-rate>/1M tokens
     gpt-5.4-mini estimated retail cost: $<run-cost> (<input> input + <output> output tokens)
-    gpt-5.4 rates: input $<current-rate>/1K, output $<current-rate>/1K
+    gpt-5.4 pricing source: Azure OpenAI pricing page, verified <date>
+    gpt-5.4 rates: input $<current-rate>/1M tokens, output $<current-rate>/1M tokens
     gpt-5.4 estimated retail cost: $<run-cost> (<input> input + <output> output tokens)
     Cost saving: gpt-5.4-mini saved <percent>% ($<amount>) vs gpt-5.4 for this run
 ```
@@ -742,11 +743,11 @@ Look for patterns in the comparison:
 - **Agreement** -- Do both models agree on sentiment and review_category? If they disagree on a regulated signal like POTENTIAL_ADVERSE_EVENT, which model would you trust?
 - **Confidence** -- Does the more capable model consistently give higher confidence scores? Higher confidence may justify the extra cost for borderline feedback near the escalation threshold.
 - **Latency** -- How much slower is the larger model? For real-time intake, latency matters; for nightly batch processing, it may not.
-- **Cost** -- The script combines each response's actual input and output token counts with the current retail rate and billing unit returned by the Azure Retail Prices API. It then compares total observed run costs to show both the dollar difference and percentage saved.
+- **Cost** -- The script combines each response's actual input and output token counts with an Azure-published retail rate and billing unit. It prefers the Retail Prices API and uses the dated pricing-page fallback for these two models when needed. It then compares total observed run costs to show both the dollar difference and percentage saved.
 
 The displayed amount is a retail cost estimate, not a billed charge. It does not include negotiated discounts, cached-token pricing, taxes, or other agreement-specific adjustments. See the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) for billing details.
 
-> **Note:** The Retail Prices catalog can lag a newly released model or omit one of its standard token meters. In that case, the script prints `pricing unavailable` and omits the cost comparison instead of substituting stale illustrative prices.
+> **Note:** The fallback is USD-only and specific to the lab's Global Standard `gpt-5.4-mini` and `gpt-5.4` deployments. Other models, currencies, or deployment types still show `pricing unavailable` when the API has no matching meters.
 
 > **Tip:** For this type of classification task, gpt-5.4-mini often matches gpt-5.4 performance at a fraction of the cost.
 
@@ -821,11 +822,13 @@ The Foundry Toolkit runs the agent locally for inspection, while `azd` packages 
 
 ## Prerequisites
 
-- The Foundry Toolkit extension installed and signed in to Azure (from Lab 1).
+- Foundry Toolkit 1.6.12 or later installed and signed in to Azure (from Lab 1). If the extension was updated, run **Developer: Reload Window** before pressing F5.
 - Azure Developer CLI (`azd`) 1.27.1 or later.
 - The Microsoft Foundry extension bundle installed with `azd ext install microsoft.foundry`.
 - `.env` with `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` set.
 - The agent dependencies are listed in `src/agent/requirements.txt` and will be installed later in the lab.
+
+Before Part A, open **Extensions**, find **Foundry Toolkit**, select **Switch to Pre-Release Version** or **Update** if offered, and confirm version 1.6.12 or later. Then run **Developer: Reload Window** from the Command Palette so the updated Agent Inspector is active.
 
 > **Note:** The `microsoft.foundry` meta-extension installs compatible `azure.ai.*` providers, including the project and hosted-agent providers used by this lab.
 
@@ -937,7 +940,7 @@ Before creating a cloud version, run the same Python entry point locally and che
 2. Select **Debug Agent with Agent Inspector**.
 
     !IMAGE[Debug with Agent Inspector](instructions356855/debug_with_agent_inspector.png)
-3. Press **F5**. The configured tasks start `src/agent/app.py`, wait for port `8088`, and open the Agent Inspector.
+3. Press **F5**. The configured tasks start `src/agent/app.py`, wait until its server is listening on port `8088`, and open the Foundry Toolkit Agent Inspector inside VS Code.
 4. Send this feedback:
 
    ```text
@@ -947,6 +950,8 @@ Before creating a cloud version, run the same Python entry point locally and che
 5. Confirm that the response is one JSON object with sentiment, confidence, topics, review category, and summary fields.
 
 The exact labels can vary, but the agent should identify both the delivery problem and the positive support experience. Stop the debugger when the check is complete.
+
+The local entry point reads `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` from the managed `.env` used in earlier parts. If the Inspector cannot connect, confirm the debug terminal reaches `AgentServerHost started` and update Foundry Toolkit before changing the agent code.
 
 ## Local checkpoint
 
