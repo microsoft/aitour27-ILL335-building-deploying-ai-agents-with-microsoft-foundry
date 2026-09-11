@@ -66,7 +66,7 @@ In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog*
     
 > **Tip:** You can close the GitHub Copilot Chat window on the right side of the editor for now to have more space to explore the model catalog.
 
-Browse the available models. Use the filters at right-side of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
+Browse the available models. Use the filters at the top of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
 
     !IMAGE[filters.png](instructions356855/filters.png)
 
