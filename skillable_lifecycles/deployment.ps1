@@ -147,13 +147,27 @@ try {
     Grant-Role $userId $foundryProjectManagerRoleId $aiProjectId  "Foundry Project Manager (learner)"
     Grant-Role $userId $openAIUserRoleId            $aiResourceId "Cognitive Services OpenAI User (learner)"
 
-    # Labs 2-5 consume these values through python-dotenv.
+    # Labs 2-5 consume a local .env rendered from the repository template.
     $projectEndpoint = (& azd env get-value AZURE_AI_PROJECT_ENDPOINT -e $envName 2>$null | Out-String).Trim()
     if (-not $projectEndpoint) { throw "azd did not publish AZURE_AI_PROJECT_ENDPOINT." }
-    @"
-PROJECT_ENDPOINT=$projectEndpoint
-MODEL_DEPLOYMENT_NAME=gpt-5.4-mini
-"@ | Set-Content -Path (Join-Path $labPath ".env") -Encoding ASCII
+    $envSamplePath = Join-Path $labPath ".env.sample"
+    if (-not (Test-Path $envSamplePath)) { throw ".env.sample not found at '$envSamplePath'." }
+
+    $envValues = @{
+        PROJECT_ENDPOINT        = $projectEndpoint
+        MODEL_DEPLOYMENT_NAME   = "gpt-5.4-mini"
+        MODEL_DEPLOYMENT_NAME_2 = "gpt-5.4"
+        AZURE_LOCATION          = $region.ToLowerInvariant()
+        AZURE_PRICING_CURRENCY  = "USD"
+    }
+    $envContent = foreach ($line in Get-Content -Path $envSamplePath) {
+        if ($line -match "^([A-Z][A-Z0-9_]+)=" -and $envValues.ContainsKey($Matches[1])) {
+            "$($Matches[1])=$($envValues[$Matches[1]])"
+        } else {
+            $line
+        }
+    }
+    $envContent | Set-Content -Path (Join-Path $labPath ".env") -Encoding ASCII
 
     Write-Host ">>> Lifecycle action complete."
 }

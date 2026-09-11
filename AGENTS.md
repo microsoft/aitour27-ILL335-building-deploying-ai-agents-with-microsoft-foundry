@@ -34,6 +34,32 @@ This repository is an AI Tour session content repository and should:
 - All README files should be kept up to date
 - Unused folders (containing only a placeholder README) should be removed before release
 
+### Delivery Modes
+
+This repository supports two separate delivery scenarios. Identify the target scenario before changing setup, deployment, prerequisites, environment configuration, or learner instructions.
+
+| Scenario | Audience | Setup authority | Learner instructions |
+|----------|----------|-----------------|----------------------|
+| Managed Skillable lab | Classroom attendees using a provisioned lab VM and subscription | `skillable_lifecycles/deployment.ps1` and `skillable_lifecycles/azddeloy.ps1` | `docs/skillable/skillable.md` |
+| Bring your own device (BYOD) | Remote or self-guided learners using their own workstation and Azure subscription | `setup/SETUP.md`, `scripts/setup.ps1`, `scripts/setup.sh`, and the post-provision scripts | Individual guides under `docs/` |
+
+#### Managed Skillable labs
+
+- Treat files under `skillable_lifecycles/` as administrator-run classroom automation, not learner commands.
+- Preserve Skillable replacement tokens such as `@lab.CloudSubscription.*`; never replace them with real credentials or copy their values into documentation, logs, tests, or committed files.
+- The lifecycle authenticates with the lab service principal, runs the initial `azd up`, grants the classroom user required roles, and renders the local `.env` on the VM.
+- Do not instruct managed-lab learners to provision resources, select a subscription, run BYOD setup scripts, or perform administrator lifecycle actions.
+- When shared prerequisites, provider versions, model deployments, or `.env.sample` keys change, update `skillable_lifecycles/deployment.ps1`, the installer lifecycle when relevant, and `docs/skillable/skillable.md` in the same change.
+
+#### Bring your own device
+
+- Assume the learner owns authentication, subscription selection, provisioning cost, and cleanup.
+- Use `setup/SETUP.md` and `scripts/setup.*` for initial provisioning; use `scripts/postprovision.*` to render local configuration from azd outputs.
+- Do not include Skillable template tokens, fixed `LabUser` paths, classroom service-principal flows, or managed-VM assumptions in BYOD instructions.
+- When shared prerequisites, provider versions, model deployments, or `.env.sample` keys change, update both PowerShell and Bash setup paths and the affected individual lab guides.
+
+Core lab code is shared by both scenarios. Keep expected output and learning outcomes aligned between the individual lab guide and the corresponding section of `docs/skillable/skillable.md`, while allowing setup steps to remain scenario-specific.
+
 ### Microsoft Foundry Hosted Agents
 
 Use these current Microsoft-owned sources as the deployment authority:
