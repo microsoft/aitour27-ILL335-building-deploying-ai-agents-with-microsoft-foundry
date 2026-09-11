@@ -1,0 +1,126 @@
+name: Learner lab issue
+description: Report a problem encountered while completing an ILL335 lab.
+title: "[Learner lab issue]: "
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a lab problem. Provide enough detail for us to reproduce the issue, but do not include credentials, tokens, subscription or tenant IDs, project endpoints, or `.env` contents.
+
+  - type: dropdown
+    id: delivery-mode
+    attributes:
+      label: Delivery mode
+      description: Where are you completing the workshop?
+      options:
+        - Managed Skillable classroom VM
+        - Bring your own device and Azure subscription
+    validations:
+      required: true
+
+  - type: dropdown
+    id: lab
+    attributes:
+      label: Lab or setup step
+      options:
+        - Setup or prerequisites
+        - Lab 1 - Discover models
+        - Lab 2 - Verify setup
+        - Lab 3 - Connect and infer
+        - Lab 4 - Sentiment analysis
+        - Lab 5 - Model comparison
+        - Lab 6 - Deploy an agent
+        - Lab 7 - Summary
+        - Cleanup
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem and where you were in the instructions.
+      placeholder: Include the page section, action taken, and visible result.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Opened...
+        2. Ran...
+        3. Selected...
+        4. Observed...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What did the lab instructions say should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: What happened instead?
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Command or action
+      description: Enter the exact command or UI action that failed. Do not paste `.env` values.
+      placeholder: python src/03_model_comparison.py
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant error output
+      description: Paste only the relevant error lines after removing secrets and environment-specific identifiers.
+      render: shell
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating system
+      options:
+        - Skillable Windows VM
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model deployment
+      description: Enter only the deployment name, such as gpt-5.4-mini. Do not include endpoints or resource IDs.
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context or screenshots
+      description: Add any other useful context. You can drag screenshots into this field after removing sensitive information.
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched the existing issues for the same problem.
+          required: true
+        - label: I removed credentials, tokens, IDs, endpoints, and `.env` contents from this report.
+          required: true
+        - label: I agree to follow this repository's Code of Conduct.
+          required: true

@@ -10,18 +10,19 @@ analyze_feedback = mod.analyze_feedback
 
 
 class FakeResponses:
-    def __init__(self, output_text: str):
+    def __init__(self, output_text: str, usage=None):
         self.output_text = output_text
+        self.usage = usage
         self.kwargs = None
 
     def create(self, **kwargs):
         self.kwargs = kwargs
-        return SimpleNamespace(output_text=self.output_text)
+        return SimpleNamespace(output_text=self.output_text, usage=self.usage)
 
 
 class FakeClient:
-    def __init__(self, output_text: str):
-        self.responses = FakeResponses(output_text)
+    def __init__(self, output_text: str, usage=None):
+        self.responses = FakeResponses(output_text, usage)
 
 
 def test_analyze_feedback_uses_responses_api():
@@ -45,6 +46,22 @@ def test_analyze_feedback_handles_non_json_response():
 
     assert result["review_category"] == "CONTENT_SAFETY"
     assert result["confidence"] == 0.0
+
+
+def test_analyze_feedback_preserves_token_usage():
+    client = FakeClient(
+        '{"sentiment":"POSITIVE","confidence":0.9,"topics":["VALUE"],'
+        '"review_category":"NONE","summary":"Good value."}',
+        SimpleNamespace(input_tokens=120, output_tokens=30, total_tokens=150),
+    )
+
+    result = analyze_feedback(client, "gpt-5.4-mini", "Good value.")
+
+    assert result["_usage"] == {
+        "input_tokens": 120,
+        "output_tokens": 30,
+        "total_tokens": 150,
+    }
 
 
 class TestRouteFeedback:

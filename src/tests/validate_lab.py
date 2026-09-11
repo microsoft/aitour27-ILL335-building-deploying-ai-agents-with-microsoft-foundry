@@ -68,6 +68,8 @@ def test_file_structure():
         ".github/skills/ill335-responses-api/SKILL.md",
         ".github/skills/ill335-hosted-agent/SKILL.md",
         ".github/skills/ill335-troubleshooting/SKILL.md",
+        ".github/ISSUE_TEMPLATE/learner-lab-issue.yml",
+        ".github/pull_request_template.md",
         # Infra
         "infra/main.bicep",
         "infra/main.parameters.json",
@@ -112,7 +114,7 @@ def test_file_structure():
         if path.exists():
             record(f"File exists: {f}", "PASS")
         else:
-            record(f"File exists: {f}", "FAIL", "Missing")
+            record(f"File exists: {f}", "FAIL", f"Missing at {path}")
 
 
 # =========================================================================

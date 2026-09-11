@@ -78,7 +78,15 @@ def analyze_feedback(client, model: str, feedback: str) -> dict:
 
     raw = response.output_text.strip()
     try:
-        return json.loads(raw)
+        result = json.loads(raw)
+        usage = getattr(response, "usage", None)
+        if usage:
+            result["_usage"] = {
+                "input_tokens": usage.input_tokens,
+                "output_tokens": usage.output_tokens,
+                "total_tokens": usage.total_tokens,
+            }
+        return result
     except json.JSONDecodeError:
         return {
             "sentiment": "MIXED",

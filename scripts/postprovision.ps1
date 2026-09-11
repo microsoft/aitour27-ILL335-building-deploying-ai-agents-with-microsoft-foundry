@@ -13,6 +13,9 @@ Write-Host "============================================" -ForegroundColor Cyan
 $projectEndpoint = azd env get-value AZURE_AI_PROJECT_ENDPOINT 2>$null
 $modelName       = azd env get-value MODEL_DEPLOYMENT_NAME 2>$null
 $modelName2      = azd env get-value MODEL_DEPLOYMENT_NAME_2 2>$null
+$azureLocation   = azd env get-value AZURE_LOCATION 2>$null
+
+if (-not $azureLocation) { $azureLocation = "northcentralus" }
 
 if (-not $projectEndpoint) {
     Write-Host "WARNING: Could not retrieve AZURE_AI_PROJECT_ENDPOINT from azd." -ForegroundColor Yellow
@@ -28,6 +31,10 @@ PROJECT_ENDPOINT=$projectEndpoint
 
 # Primary model deployment name
 MODEL_DEPLOYMENT_NAME=$modelName
+
+# Azure Retail Prices API settings for Lab 5
+AZURE_LOCATION=$azureLocation
+AZURE_PRICING_CURRENCY=USD
 "@
 
 if ($modelName2 -and $modelName2 -ne "") {
@@ -40,6 +47,7 @@ Write-Host ""
 Write-Host "  .env file written to: $envPath" -ForegroundColor Green
 Write-Host "  PROJECT_ENDPOINT:     $projectEndpoint" -ForegroundColor Green
 Write-Host "  MODEL_DEPLOYMENT_NAME: $modelName" -ForegroundColor Green
+Write-Host "  AZURE_LOCATION:       $azureLocation" -ForegroundColor Green
 if ($modelName2 -and $modelName2 -ne "") {
     Write-Host "  MODEL_DEPLOYMENT_NAME_2: $modelName2" -ForegroundColor Green
 }

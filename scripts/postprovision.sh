@@ -16,6 +16,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PROJECT_ENDPOINT=$(azd env get-value AZURE_AI_PROJECT_ENDPOINT 2>/dev/null || echo "")
 MODEL_NAME=$(azd env get-value MODEL_DEPLOYMENT_NAME 2>/dev/null || echo "gpt-5.4-mini")
 MODEL_NAME_2=$(azd env get-value MODEL_DEPLOYMENT_NAME_2 2>/dev/null || echo "")
+AZURE_LOCATION=$(azd env get-value AZURE_LOCATION 2>/dev/null || echo "northcentralus")
 
 if [ -z "$PROJECT_ENDPOINT" ]; then
     echo "WARNING: Could not retrieve AZURE_AI_PROJECT_ENDPOINT from azd."
@@ -30,7 +31,11 @@ printf '%s\n' \
     "PROJECT_ENDPOINT=$PROJECT_ENDPOINT" \
     '' \
     '# Primary model deployment name' \
-    "MODEL_DEPLOYMENT_NAME=$MODEL_NAME" > "$ENV_PATH"
+    "MODEL_DEPLOYMENT_NAME=$MODEL_NAME" \
+    '' \
+    '# Azure Retail Prices API settings for Lab 5' \
+    "AZURE_LOCATION=$AZURE_LOCATION" \
+    'AZURE_PRICING_CURRENCY=USD' > "$ENV_PATH"
 
 if [ -n "$MODEL_NAME_2" ]; then
     printf '%s\n' \
@@ -43,6 +48,7 @@ echo ""
 echo "  .env file written to: $ENV_PATH"
 echo "  PROJECT_ENDPOINT:      $PROJECT_ENDPOINT"
 echo "  MODEL_DEPLOYMENT_NAME: $MODEL_NAME"
+echo "  AZURE_LOCATION:        $AZURE_LOCATION"
 if [ -n "$MODEL_NAME_2" ]; then
     echo "  MODEL_DEPLOYMENT_NAME_2: $MODEL_NAME_2"
 fi
