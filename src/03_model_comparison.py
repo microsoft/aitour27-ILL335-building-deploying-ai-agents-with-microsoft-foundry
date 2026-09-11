@@ -39,7 +39,8 @@ TEST_FEEDBACK = [
     "The safety seal on the bottle was already broken when it arrived.",
     "Can I take this Caldova product with my prescription medicine?",
     "Availability improved, although the online stock information is unreliable.",
-]
+    "The Caldova product was not unlike the one I usually buy, I suppose.",    "The Caldova tablets were... something. I honestly cannot decide how I feel about them.",]
+
 
 RETAIL_PRICES_URL = "https://prices.azure.com/api/retail/prices"
 RETAIL_PRICES_API_VERSION = "2023-01-01-preview"
