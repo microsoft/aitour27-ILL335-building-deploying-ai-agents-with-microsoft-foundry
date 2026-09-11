@@ -92,7 +92,7 @@ def analyze_feedback(client, model: str, feedback: str) -> dict:
             "sentiment": "MIXED",
             "confidence": 0.0,
             "topics": ["OTHER"],
-            "review_category": "CONTENT_SAFETY",
+            "review_category": "NONE",
             "summary": f"Model returned non-JSON output: {raw[:100]}",
         }
 
