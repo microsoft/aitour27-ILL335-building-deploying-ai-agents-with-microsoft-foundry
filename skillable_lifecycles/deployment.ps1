@@ -32,6 +32,19 @@ try {
         if ($exitCode -ne 0) { throw "$label failed (exit $exitCode)." }
     }
 
+    function Get-AzdEnvValue([string[]]$names, [string]$label) {
+        foreach ($name in $names) {
+            $output = & azd env get-value $name -e $envName 2>&1
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) {
+                $value = ($output | Out-String).Trim()
+                if ($value) { return $value }
+            }
+        }
+
+        throw "azd did not publish $label (checked: $($names -join ', '))."
+    }
+
     function Grant-Role($principalId, $roleId, $scope, $label) {
         try {
             New-AzRoleAssignment -RoleDefinitionId $roleId -ObjectId $principalId -Scope $scope -ErrorAction Stop | Out-Null
@@ -86,7 +99,7 @@ try {
     Remove-Item Env:AZURE_RESOURCE_GROUP -ErrorAction SilentlyContinue
 
     $labPath = @(
-        "C:\Users\LabUser\Desktop\IL335"
+        "C:\Users\LabUser\Desktop\ILL335"
     ) | Where-Object { Test-Path $_ } | Select-Object -First 1
     if (-not $labPath) {
         throw "Lab folder not found. Expected AI-Tour-ILL335-main or ILL335 on the LabUser desktop."
@@ -125,8 +138,7 @@ try {
     $foundryProjectManagerRoleId = "eadc314b-1a2d-4efa-be10-5d325db5065e"  # Foundry Project Manager
     $openAIUserRoleId            = "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd"  # Cognitive Services OpenAI User
 
-    $azdRg = (& azd env get-value AZURE_RESOURCE_GROUP -e $envName 2>$null | Out-String).Trim()
-    if (-not $azdRg) { throw "azd did not publish AZURE_RESOURCE_GROUP." }
+    $azdRg = Get-AzdEnvValue @("AZURE_RESOURCE_GROUP") "the resource group"
     Write-Host "azd resource group: $azdRg"
 
     $aiResource = Invoke-WithRetry {
@@ -148,8 +160,9 @@ try {
     Grant-Role $userId $openAIUserRoleId            $aiResourceId "Cognitive Services OpenAI User (learner)"
 
     # Labs 2-5 consume a local .env rendered from the repository template.
-    $projectEndpoint = (& azd env get-value AZURE_AI_PROJECT_ENDPOINT -e $envName 2>$null | Out-String).Trim()
-    if (-not $projectEndpoint) { throw "azd did not publish AZURE_AI_PROJECT_ENDPOINT." }
+    $projectEndpoint = Get-AzdEnvValue `
+        @("FOUNDRY_PROJECT_ENDPOINT", "AZURE_AI_PROJECT_ENDPOINT") `
+        "the Foundry project endpoint"
     $envSamplePath = Join-Path $labPath ".env.sample"
     if (-not (Test-Path $envSamplePath)) { throw ".env.sample not found at '$envSamplePath'." }
 

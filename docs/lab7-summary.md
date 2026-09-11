@@ -10,7 +10,7 @@ Review the complete journey from discovering a model in the Foundry catalog to d
 
 Across the labs, you -- as an AI developer on Caldova's commercial digital and customer engagement team -- constructed a **consumer sentiment analysis pipeline** end-to-end, from a blank terminal to a cloud-hosted agent accessible via REST API.
 
-![mermaid_diagram3.png](../images/mermaid_diagram3.png)
+![Journey from model discovery to a cloud-hosted agent](images/mermaid_diagram3.png)
 
 ## Lab-by-lab recap
 

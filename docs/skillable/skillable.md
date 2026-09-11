@@ -16,6 +16,9 @@ You are an AI developer on Caldova's commercial digital and customer engagement 
 
 In this lab, you will explore the Microsoft Foundry model catalog -- directly inside Visual Studio Code using the **Foundry Toolkit** extension -- to find a model that can power Caldova's consumer sentiment analysis pipeline.
 
+!IMAGE[trust.png](instructions356855/mermaid_diagram2.png)
+
+
 ## Objective
 Explore the Foundry Toolkit model catalog in Visual Studio Code to discover available hosted models, understand model capabilities, and identify a model suitable for inference-based tasks like product review moderation.
 
@@ -60,10 +63,11 @@ Select a model to view its model card. Take note of the following properties.
 | Model provider | Azure OpenAI, Microsoft AI, Meta, Mistral, etc. |
 | Feature | Web Searcd, Structured Output, Image Attachment, etc |
 | Publisher| Anthropic, Cohere, Deepseek, OpenAI, etc |
-| Out!
-!IMAGE[model_catalog.png](instructions356855/model_catalog.png)put type | text, image |
+| Output type | text, image |
 | Context window | Varies by model (see model card) |
 | Token limits | Varies by model (see model card) |
+
+!IMAGE[model_catalog.png](instructions356855/model_catalog.png)
 
 ## Step 4: Identify a model for this lab
 
@@ -87,6 +91,7 @@ Find **gpt-5.4-mini** in the catalog and open its detail page.
 
 Use the search on Find the Right Model for your AI Solution 
 !IMAGE[findmodel.png](instructions356855/findmodel.png)
+
 Explore the tabs at the top:
 
 1. **Details** -- Model description and capabilities
@@ -369,7 +374,7 @@ Sentiment classification and regulated routing are **independent** of each other
 
 ## Architecture
 
-!IMAGE[architecture_lab520.png](instructions343795/architecture_lab520.png)
+!IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture.png)
 
 This pipeline uses **prompt-based JSON**: the system prompt instructs the model to respond only with valid JSON. For even stricter guarantees, OpenAI models support [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), a `response_format` parameter that constrains the model to conform to a JSON schema. This lab uses the prompt-based approach for simplicity and portability across model providers.
 
@@ -653,7 +658,7 @@ If you only have one model deployed, deploy a second one from the Foundry Toolki
 
 Wait for the deployment to complete before proceeding. You should see the pop-up below once complete.
 
-!IMAGE[Foundry Toolkit Deployment Complete](instructions343795/ftk_deployment_success.png)
+!IMAGE[Foundry Toolkit Deployment Complete](instructions356855/ftk_deployment_success.png)
 
 > **Note:** If you are unable to deploy a second model, skip this lab and proceed to Lab 6.
 
@@ -790,9 +795,9 @@ A hosted agent is your agent application running on Foundry-managed infrastructu
 
 ## Architecture
 
-The Foundry Toolkit and `azd` build your agent code into the hosted service and deploy it to Foundry Agent Service. At runtime, the platform provisions a sandbox and exposes a dedicated endpoint that your agent uses to call Foundry models.
+The Foundry Toolkit runs the agent locally for inspection, while `azd` packages and deploys the source to Foundry Agent Service. At runtime, the platform provisions a sandbox and exposes a dedicated endpoint that your agent uses to call Foundry models.
 
-!IMAGE[Hosted agent architecture](../images/mermaid_diagram2.png)
+!IMAGE[Hosted agent architecture](instructions356855/mermaid_diagram2.png)
 
 | Property | This lab |
 |----------|----------|
@@ -1061,7 +1066,7 @@ Review the complete journey from discovering a model in the Foundry catalog to d
 
 Across the labs, you -- as an AI developer on Caldova's commercial digital and customer engagement team -- constructed a **consumer sentiment analysis pipeline** end-to-end, from a blank terminal to a cloud-hosted agent accessible via REST API.
 
-!IMAGE[mermaid_diagram3.png](instructions343795/mermaid_diagram3.png)
+!IMAGE[Journey from model discovery to a cloud-hosted agent](instructions356855/mermaid_diagram3.png)
 
 ## Lab-by-lab recap
 
@@ -1183,7 +1188,8 @@ You started with a model in a catalog and finished with a production-ready hoste
 
 If you encountered any issues during this lab or would like to try it self-paced, see the repository issues page.
 
-!IMAGE[Report issues](../images/issues.png)
+!IMAGE[Report Issues](instructions356855/issues.png)
+
 Please create a issue on the repo
 
 Happy building!
