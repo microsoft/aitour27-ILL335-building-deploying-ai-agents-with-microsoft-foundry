@@ -167,11 +167,14 @@ try {
     if (-not (Test-Path $envSamplePath)) { throw ".env.sample not found at '$envSamplePath'." }
 
     $envValues = @{
-        PROJECT_ENDPOINT      = $projectEndpoint
-        MODEL_DEPLOYMENT_NAME = "gpt-5.4-mini"
+        PROJECT_ENDPOINT        = $projectEndpoint
+        MODEL_DEPLOYMENT_NAME   = "gpt-5.4-mini"
+        MODEL_DEPLOYMENT_NAME_2 = "gpt-5.4"
+        AZURE_LOCATION          = $region.ToLowerInvariant()
+        AZURE_PRICING_CURRENCY  = "USD"
     }
     $envContent = foreach ($line in Get-Content -Path $envSamplePath) {
-        if ($line -match "^(PROJECT_ENDPOINT|MODEL_DEPLOYMENT_NAME)=") {
+        if ($line -match "^([A-Z][A-Z0-9_]+)=" -and $envValues.ContainsKey($Matches[1])) {
             "$($Matches[1])=$($envValues[$Matches[1]])"
         } else {
             $line

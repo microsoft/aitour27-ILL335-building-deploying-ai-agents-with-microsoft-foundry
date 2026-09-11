@@ -10,9 +10,13 @@ Usage:
 
 import argparse
 import importlib
+import json
 import os
+import re
 import sys
 import time
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -37,13 +41,211 @@ TEST_FEEDBACK = [
     "Availability improved, although the online stock information is unreliable.",
 ]
 
+RETAIL_PRICES_URL = "https://prices.azure.com/api/retail/prices"
+RETAIL_PRICES_API_VERSION = "2023-01-01-preview"
+INPUT_METER_WORDS = {"input", "inp", "inpt"}
+OUTPUT_METER_WORDS = {"output", "out", "outp", "opt"}
+EXCLUDED_METER_WORDS = {
+    "audio",
+    "batch",
+    "cached",
+    "cchd",
+    "codex",
+    "dev",
+    "fine",
+    "ft",
+    "grader",
+    "grdr",
+    "hosting",
+    "realtime",
+    "training",
+}
+VALID_MODEL_SUFFIX_WORDS = INPUT_METER_WORDS | OUTPUT_METER_WORDS | {
+    "data",
+    "dzone",
+    "global",
+    "glbl",
+    "regional",
+    "regnl",
+}
 
-def compare_models(client, models: list[str], feedback: str) -> list[dict]:
+
+def _escape_odata(value: str) -> str:
+    return value.replace("'", "''")
+
+
+def _model_aliases(model: str) -> list[str]:
+    aliases = {
+        model,
+        model.upper(),
+        model.replace("-", " "),
+        model.upper().replace("-", " "),
+        re.sub(r"[- ]", "", model).upper(),
+    }
+    return sorted(aliases)
+
+
+def fetch_retail_meters(model: str, region: str, currency: str = "USD") -> list[dict]:
+    """Fetch model meters from the unauthenticated Azure Retail Prices API."""
+    region_value = _escape_odata(region)
+    model_filter = " or ".join(
+        f"contains(meterName, '{_escape_odata(alias)}')"
+        for alias in _model_aliases(model)
+    )
+    filter_expression = (
+        "serviceName eq 'Foundry Models' and "
+        f"armRegionName eq '{region_value}' and "
+        "priceType eq 'Consumption' and "
+        f"({model_filter})"
+    )
+    query = urlencode(
+        {
+            "api-version": RETAIL_PRICES_API_VERSION,
+            "currencyCode": f"'{currency.upper()}'",
+            "$filter": filter_expression,
+        }
+    )
+    next_page = f"{RETAIL_PRICES_URL}?{query}"
+    meters = []
+
+    while next_page:
+        request = Request(next_page, headers={"User-Agent": "ILL335-model-comparison/1.0"})
+        with urlopen(request, timeout=10) as response:
+            payload = json.load(response)
+        meters.extend(payload.get("Items", []))
+        next_page = payload.get("NextPageLink")
+
+    return meters
+
+
+def _meter_words(meter: dict) -> set[str]:
+    text = " ".join(
+        str(meter.get(field, ""))
+        for field in ("meterName", "skuName", "armSkuName")
+    ).lower()
+    return set(re.findall(r"[a-z0-9]+", text))
+
+
+def _matches_exact_model(meter: dict, model: str) -> bool:
+    """Reject similarly named variants, such as mini meters for the base model."""
+    model_name = re.sub(r"[^a-z0-9]", "", model.lower())
+    for field in ("meterName", "skuName", "armSkuName"):
+        name = re.sub(r"[^a-z0-9]", "", str(meter.get(field, "")).lower())
+        start = name.find(model_name)
+        if start == -1:
+            continue
+        suffix = name[start + len(model_name) :]
+        if not suffix:
+            return True
+        suffix = suffix.lstrip("0123456789")
+        if any(suffix.startswith(word) for word in VALID_MODEL_SUFFIX_WORDS):
+            return True
+    return False
+
+
+def _tokens_per_unit(unit_of_measure: str) -> int | None:
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)\s*([KM]?)", unit_of_measure.upper().strip())
+    if not match:
+        return None
+    multiplier = {"": 1, "K": 1_000, "M": 1_000_000}[match.group(2)]
+    return round(float(match.group(1)) * multiplier)
+
+
+def _select_meter(meters: list[dict], model: str, meter_type: str) -> dict | None:
+    required_words = INPUT_METER_WORDS if meter_type == "input" else OUTPUT_METER_WORDS
+    candidates = []
+    for meter in meters:
+        words = _meter_words(meter)
+        if (
+            not _matches_exact_model(meter, model)
+            or words & EXCLUDED_METER_WORDS
+            or not words & required_words
+            or _tokens_per_unit(str(meter.get("unitOfMeasure", ""))) is None
+        ):
+            continue
+        score = 2 if words & {"global", "glbl"} else 1
+        candidates.append((score, str(meter.get("effectiveStartDate", "")), meter))
+
+    return max(candidates, default=(0, "", None), key=lambda item: (item[0], item[1]))[2]
+
+
+def get_model_pricing(model: str, region: str, currency: str = "USD") -> dict | None:
+    """Return standard input and output retail meters for a model when available."""
+    meters = fetch_retail_meters(model, region, currency)
+    pricing = {}
+    for meter_type in ("input", "output"):
+        meter = _select_meter(meters, model, meter_type)
+        if not meter:
+            return None
+        pricing[meter_type] = {
+            "meter_name": meter["meterName"],
+            "retail_price": float(meter["retailPrice"]),
+            "unit_of_measure": meter["unitOfMeasure"],
+            "tokens_per_unit": _tokens_per_unit(meter["unitOfMeasure"]),
+        }
+    return pricing
+
+
+def calculate_cost(usage: dict, pricing: dict | None) -> float | None:
+    """Calculate one response's retail cost from actual token usage."""
+    if not usage or not pricing:
+        return None
+    input_meter = pricing["input"]
+    output_meter = pricing["output"]
+    return (
+        usage.get("input_tokens", 0)
+        / input_meter["tokens_per_unit"]
+        * input_meter["retail_price"]
+        + usage.get("output_tokens", 0)
+        / output_meter["tokens_per_unit"]
+        * output_meter["retail_price"]
+    )
+
+
+def calculate_savings(model_costs: dict[str, float]) -> dict | None:
+    """Compare observed run costs and return savings against the costliest model."""
+    if len(model_costs) < 2:
+        return None
+    ranked_costs = sorted(model_costs.items(), key=lambda item: item[1])
+    cheaper_model, cheaper_cost = ranked_costs[0]
+    expensive_model, expensive_cost = ranked_costs[-1]
+    difference = expensive_cost - cheaper_cost
+    return {
+        "cheaper_model": cheaper_model,
+        "expensive_model": expensive_model,
+        "difference": difference,
+        "percent": difference / expensive_cost * 100 if expensive_cost else 0,
+    }
+
+
+def load_model_pricing(
+    models: list[str], region: str, currency: str = "USD"
+) -> tuple[dict, dict]:
+    """Load available prices without allowing pricing failures to block the lab."""
+    pricing_by_model = {}
+    errors = {}
+    for model in models:
+        try:
+            pricing = get_model_pricing(model, region, currency)
+            if pricing:
+                pricing_by_model[model] = pricing
+            else:
+                errors[model] = "no matching standard input/output token meters"
+        except (OSError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+            errors[model] = str(exc)
+    return pricing_by_model, errors
+
+
+def compare_models(
+    client, models: list[str], feedback: str, pricing_by_model: dict | None = None
+) -> list[dict]:
     """Run identical feedback through each model and collect comparable fields."""
     results = []
+    pricing_by_model = pricing_by_model or {}
     for model in models:
         start = time.time()
         result = analyze_feedback(client, model, feedback)
+        usage = result.get("_usage", {})
         results.append(
             {
                 "model": model,
@@ -51,6 +253,8 @@ def compare_models(client, models: list[str], feedback: str) -> list[dict]:
                 "confidence": result["confidence"],
                 "review_category": result["review_category"],
                 "latency_ms": round((time.time() - start) * 1000),
+                "usage": usage,
+                "estimated_cost": calculate_cost(usage, pricing_by_model.get(model)),
             }
         )
     return results
@@ -84,8 +288,9 @@ def hybrid_analyze(
     }
 
 
-def run_comparison(client, models: list[str]):
+def run_comparison(client, models: list[str], region: str, currency: str = "USD"):
     """Print side-by-side results and agreement metrics."""
+    pricing_by_model, pricing_errors = load_model_pricing(models, region, currency)
     print("=" * 78)
     print("  Model Comparison: Caldova Consumer Sentiment")
     print("=" * 78)
@@ -93,7 +298,7 @@ def run_comparison(client, models: list[str]):
     all_results = []
     for feedback in TEST_FEEDBACK:
         print(f'\nFeedback: "{feedback}"\n')
-        results = compare_models(client, models, feedback)
+        results = compare_models(client, models, feedback, pricing_by_model)
         all_results.append(results)
         print(
             f"  {'Model':<20s} {'Sentiment':<11s} {'Confidence':<12s} "
@@ -126,6 +331,43 @@ def run_comparison(client, models: list[str]):
         ]
         average = sum(latencies) / len(latencies) if latencies else 0
         print(f"  Avg latency - {model}: {average:.0f}ms")
+
+    print(f"\n  Retail pricing: {currency.upper()} in {region} (Azure Retail Prices API)")
+    model_costs = {}
+    for model in models:
+        model_results = [
+            item
+            for results in all_results
+            for item in results
+            if item["model"] == model
+        ]
+        input_tokens = sum(item["usage"].get("input_tokens", 0) for item in model_results)
+        output_tokens = sum(item["usage"].get("output_tokens", 0) for item in model_results)
+        pricing = pricing_by_model.get(model)
+        if not pricing:
+            reason = pricing_errors.get(model, "pricing unavailable")
+            print(f"  {model}: pricing unavailable ({reason})")
+            continue
+
+        cost = sum(item["estimated_cost"] or 0 for item in model_results)
+        model_costs[model] = cost
+        print(
+            f"  {model} rates: input ${pricing['input']['retail_price']:.6f}/"
+            f"{pricing['input']['unit_of_measure']}, output "
+            f"${pricing['output']['retail_price']:.6f}/"
+            f"{pricing['output']['unit_of_measure']}"
+        )
+        print(
+            f"  {model} estimated retail cost: ${cost:.6f} "
+            f"({input_tokens:,} input + {output_tokens:,} output tokens)"
+        )
+
+    savings = calculate_savings(model_costs)
+    if savings:
+        print(
+            f"  Cost saving: {savings['cheaper_model']} saved {savings['percent']:.1f}% "
+            f"(${savings['difference']:.6f}) vs {savings['expensive_model']} for this run"
+        )
     print()
 
 
@@ -158,6 +400,8 @@ def main():
     endpoint = os.environ.get("PROJECT_ENDPOINT")
     model_1 = os.environ.get("MODEL_DEPLOYMENT_NAME")
     model_2 = os.environ.get("MODEL_DEPLOYMENT_NAME_2")
+    pricing_region = os.environ.get("AZURE_LOCATION", "northcentralus")
+    pricing_currency = os.environ.get("AZURE_PRICING_CURRENCY", "USD")
 
     if not endpoint or endpoint.startswith("https://<"):
         print("ERROR: Set PROJECT_ENDPOINT in your .env file.")
@@ -188,7 +432,7 @@ def main():
     else:
         if args.hybrid:
             print("WARN: Hybrid mode requires two models. Running comparison instead.\n")
-        run_comparison(inference_client, models)
+        run_comparison(inference_client, models, pricing_region, pricing_currency)
 
 
 if __name__ == "__main__":
