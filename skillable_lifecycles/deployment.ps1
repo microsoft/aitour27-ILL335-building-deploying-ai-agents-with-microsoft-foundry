@@ -106,6 +106,26 @@ try {
     }
     Set-Location $labPath
 
+    # Prepare the interpreter used by the VS Code Agent Inspector tasks.
+    $venvPython = Join-Path $labPath ".venv\Scripts\python.exe"
+    if (-not (Test-Path $venvPython)) {
+        Invoke-External "create Python virtual environment" {
+            python -m venv (Join-Path $labPath ".venv")
+        }
+    }
+    if (-not (Test-Path $venvPython)) {
+        throw "Python virtual environment was not created at '$venvPython'."
+    }
+    Invoke-External "install lab Python dependencies" {
+        & $venvPython -m pip install -r (Join-Path $labPath "requirements.txt")
+    }
+    Invoke-External "install hosted-agent Python dependencies" {
+        & $venvPython -m pip install -r (Join-Path $labPath "src\agent\requirements.txt")
+    }
+    Invoke-External "verify Python dependencies" {
+        & $venvPython -m pip check
+    }
+
     Invoke-External "verify azd version" {
         azd version
     }
