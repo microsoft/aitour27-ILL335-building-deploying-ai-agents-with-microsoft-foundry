@@ -103,7 +103,9 @@ The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-eff
 
 1. Back in VS Code, under **Developer Tools → Build** in the toolkit panel, open the **Model Playground**.
 2. Select **gpt-5.4-mini** from the model dropdown.
+
 > **Note:** You see this model listed because it is pre-provisioned in your Foundry project. You do not need to deploy it yourself.
+
 3. In the **System prompt** (instructions) field, enter:
 
     ```text
@@ -818,14 +820,6 @@ The Foundry Toolkit runs the agent locally for inspection, while `azd` packages 
 | Deployment | Direct code through `azure.yaml` and `azd up` |
 | History | Managed by the Foundry platform |
 | Identity | Azure identity; no credentials stored in source |
-
-## Prerequisites
-
-- The Foundry Toolkit extension installed and signed in to Azure (from Lab 1).
-- Azure Developer CLI (`azd`) 1.27.1 or later.
-- The Microsoft Foundry extension bundle installed with `azd ext install microsoft.foundry`.
-- `.env` with `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` set.
-- The agent dependencies are listed in `src/agent/requirements.txt` and will be installed later in the lab.
 
 > **Note:** The `microsoft.foundry` meta-extension installs compatible `azure.ai.*` providers, including the project and hosted-agent providers used by this lab.
 
