@@ -237,16 +237,18 @@ This installs:
 If you are using Visual Studio Code, install the recommended extensions:
 
 ```bash
-code --install-extension ms-windows-ai-studio.windows-ai-studio
+code --install-extension ms-windows-ai-studio.windows-ai-studio --pre-release --force
 code --install-extension ms-python.python
 code --install-extension ms-python.vscode-pylance
 ```
 
 | Extension | Purpose |
 |-----------|---------|
-| Foundry Toolkit | Foundry project integration |
+| Foundry Toolkit 1.6.12 or later | Foundry project integration and the embedded Agent Inspector |
 | Python | Python language support |
 | Pylance | IntelliSense for Python |
+
+After Foundry Toolkit installs or updates, run **Developer: Reload Window** from the Command Palette before using the Lab 6 F5 configuration.
 
 ---
 

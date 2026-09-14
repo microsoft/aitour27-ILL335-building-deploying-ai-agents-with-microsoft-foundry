@@ -108,6 +108,11 @@ if (Get-Command "code" -ErrorAction SilentlyContinue) {
         "ms-python.vscode-pylance"
     )
     foreach ($ext in $extensions) {
+        if ($ext -eq "ms-windows-ai-studio.windows-ai-studio") {
+            Write-Host "  Installing or updating Foundry Toolkit prerelease..." -ForegroundColor Yellow
+            code --install-extension $ext --pre-release --force 2>&1 | Out-Null
+            continue
+        }
         $installed = code --list-extensions 2>$null | Where-Object { $_ -eq $ext }
         if ($installed) {
             Write-Host "  Already installed: $ext"

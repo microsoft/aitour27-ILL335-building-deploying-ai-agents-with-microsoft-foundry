@@ -49,7 +49,7 @@ Wait for the deployment to complete before proceeding. You should see the pop-up
 
 ## Step 1: Review the comparison code
 
-Open `src/03_model_comparison.py`. The script retrieves current input and output token rates from the unauthenticated [Azure Retail Prices API](https://learn.microsoft.com/rest/api/cost-management/retail-prices/azure-retail-prices), then runs the same feedback through each model:
+Open `src/03_model_comparison.py`. The script first looks for current input and output token meters in the unauthenticated [Azure Retail Prices API](https://learn.microsoft.com/rest/api/cost-management/retail-prices/azure-retail-prices). New model meters can appear on the Azure pricing page before they reach that catalog, so the two lab models fall back to their published Global Standard USD rates from the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/). The script identifies the source and verification date in its output, then runs the same feedback through each model:
 
 ```python
 def compare_models(client, models, feedback, pricing_by_model=None):
@@ -100,10 +100,12 @@ Feedback: "I felt dizzy after taking the Caldova allergy relief tablets."
   Avg latency - gpt-5.4-mini: 311ms
   Avg latency - gpt-5.4:      868ms
 
-  Retail pricing: USD in northcentralus (Azure Retail Prices API)
-  gpt-5.4-mini rates: input $<current-rate>/1K, output $<current-rate>/1K
+  Pricing estimate: USD (Azure published retail rates)
+  gpt-5.4-mini pricing source: Azure OpenAI pricing page, verified <date>
+  gpt-5.4-mini rates: input $<current-rate>/1M tokens, output $<current-rate>/1M tokens
   gpt-5.4-mini estimated retail cost: $<run-cost> (<input> input + <output> output tokens)
-  gpt-5.4 rates: input $<current-rate>/1K, output $<current-rate>/1K
+  gpt-5.4 pricing source: Azure OpenAI pricing page, verified <date>
+  gpt-5.4 rates: input $<current-rate>/1M tokens, output $<current-rate>/1M tokens
   gpt-5.4 estimated retail cost: $<run-cost> (<input> input + <output> output tokens)
   Cost saving: gpt-5.4-mini saved <percent>% ($<amount>) vs gpt-5.4 for this run
 ```
@@ -117,11 +119,11 @@ Look for patterns in the comparison:
 - **Agreement** -- Do both models agree on sentiment and review_category? If they disagree on a regulated signal like POTENTIAL_ADVERSE_EVENT, which model would you trust?
 - **Confidence** -- Does the more capable model consistently give higher confidence scores? Higher confidence may justify the extra cost for borderline feedback near the escalation threshold.
 - **Latency** -- How much slower is the larger model? For real-time intake, latency matters; for nightly batch processing, it may not.
-- **Cost** -- The script combines each response's actual input and output token counts with the current retail rate and billing unit returned by the Azure Retail Prices API. It then compares total observed run costs to show both the dollar difference and percentage saved.
+- **Cost** -- The script combines each response's actual input and output token counts with an Azure-published retail rate and billing unit. It prefers the Retail Prices API and uses the dated Azure OpenAI pricing-page fallback for these two Global Standard models when their API meters are not yet available. It then compares total observed run costs to show both the dollar difference and percentage saved.
 
 The displayed amount is a retail cost estimate, not a billed charge. It does not include negotiated discounts, cached-token pricing, taxes, or other agreement-specific adjustments. See the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) for billing details.
 
-> **Note:** The Retail Prices catalog can lag a newly released model or omit one of its standard token meters. In that case, the script prints `pricing unavailable` and omits the cost comparison instead of substituting stale illustrative prices.
+> **Note:** The pricing-page fallback is USD-only and specific to the lab's Global Standard `gpt-5.4-mini` and `gpt-5.4` deployments. For other models, currencies, or deployment types, the script still prints `pricing unavailable` when the Retail Prices API has no matching meters.
 
 > **Tip:** For this type of classification task, gpt-5.4-mini often matches gpt-5.4 performance at a fraction of the cost.
 

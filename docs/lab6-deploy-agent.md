@@ -36,7 +36,7 @@ The Foundry Toolkit runs the agent locally for inspection, while `azd` packages 
 
 ## Prerequisites
 
-- The Foundry Toolkit extension installed and signed in to Azure (from Lab 1).
+- Foundry Toolkit 1.6.12 or later installed and signed in to Azure (from Lab 1). After updating the extension, run **Developer: Reload Window** before pressing F5.
 - Azure Developer CLI (`azd`) 1.27.1 or later.
 - The Microsoft Foundry extension bundle installed with `azd ext install microsoft.foundry`.
 - `.env` with `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` set.
@@ -46,6 +46,8 @@ Install the agent dependencies (separate from the main lab requirements):
 ```powershell
 pip install -r src/agent/requirements.txt
 ```
+
+Before Part A, open **Extensions**, find **Foundry Toolkit**, select **Switch to Pre-Release Version** or **Update** if offered, and confirm version 1.6.12 or later. Then run **Developer: Reload Window** from the Command Palette so the updated Agent Inspector is active.
 
 > **Note:** The `microsoft.foundry` meta-extension installs compatible `azure.ai.*` providers, including the project and hosted-agent providers used by this lab.
 
@@ -137,7 +139,7 @@ You have reviewed the agent and its deployment contract. Before creating a cloud
 
 1. In VS Code, open **Run and Debug**.
 2. Select **Debug Agent with Agent Inspector**.
-3. Press **F5**. The configured tasks start `src/agent/app.py`, wait for port `8088`, and open the Agent Inspector.
+3. Press **F5**. The configured tasks start `src/agent/app.py`, wait until its server is listening on port `8088`, and open the Foundry Toolkit Agent Inspector inside VS Code.
 4. Send this feedback:
 
    ```text
@@ -147,6 +149,8 @@ You have reviewed the agent and its deployment contract. Before creating a cloud
 5. Confirm that the response is one JSON object with sentiment, confidence, topics, review category, and summary fields.
 
 The exact labels can vary, but the agent should identify both the delivery problem and the positive support experience. Stop the debugger when the check is complete.
+
+The local entry point reads `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` from the same managed `.env` used in earlier labs. If the Inspector cannot connect, confirm the debug terminal reaches `AgentServerHost started` and update Foundry Toolkit before changing the agent code.
 
 ### Local checkpoint
 

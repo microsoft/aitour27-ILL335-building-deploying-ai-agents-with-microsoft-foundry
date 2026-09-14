@@ -109,6 +109,11 @@ if command -v code >/dev/null 2>&1; then
     )
     INSTALLED=$(code --list-extensions 2>/dev/null)
     for ext in "${EXTENSIONS[@]}"; do
+        if [ "$ext" = "ms-windows-ai-studio.windows-ai-studio" ]; then
+            echo "  Installing or updating Foundry Toolkit prerelease..."
+            code --install-extension "$ext" --pre-release --force 2>/dev/null || warn "Failed to install $ext"
+            continue
+        fi
         if echo "$INSTALLED" | grep -qi "^${ext}$"; then
             echo "  Already installed: $ext"
         else

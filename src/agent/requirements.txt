@@ -1,13 +1,13 @@
 # Hosted-agent packages are version-sensitive. These pins match the current
 # Microsoft Foundry Agent Framework Responses sample and its compatible SDKs.
-agent-framework-core==1.12.0
-agent-framework-foundry==1.10.2
-agent-framework-openai==1.10.2
-agent-framework-foundry-hosting==1.0.0b260721
-azure-ai-agentserver-core==2.0.0b8
-azure-ai-agentserver-responses==1.0.0b9
+agent-framework-core==1.18.0
+agent-framework-foundry==1.13.0
+agent-framework-openai==1.14.3
+agent-framework-foundry-hosting==1.0.0b260910
+azure-ai-agentserver-core==2.1.0
+azure-ai-agentserver-responses==2.2.0b1
 debugpy==1.8.21
-azure-ai-projects==2.3.0
+azure-ai-projects==2.6.0
 azure-identity==1.25.3
-openai==2.47.0
-python-dotenv==1.2.2
+openai==3.13.0
+python-dotenv==1.2.3

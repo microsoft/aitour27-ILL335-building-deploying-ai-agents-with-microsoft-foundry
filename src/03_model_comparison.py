@@ -44,6 +44,13 @@ TEST_FEEDBACK = [
 
 RETAIL_PRICES_URL = "https://prices.azure.com/api/retail/prices"
 RETAIL_PRICES_API_VERSION = "2023-01-01-preview"
+AZURE_OPENAI_PRICING_URL = (
+    "https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/"
+)
+PUBLISHED_GLOBAL_RATES_USD_PER_1M = {
+    "gpt-5.4-mini": {"input": 0.75, "output": 4.50},
+    "gpt-5.4": {"input": 2.50, "output": 15.00},
+}
 INPUT_METER_WORDS = {"input", "inp", "inpt"}
 OUTPUT_METER_WORDS = {"output", "out", "outp", "opt"}
 EXCLUDED_METER_WORDS = {
@@ -187,6 +194,28 @@ def get_model_pricing(model: str, region: str, currency: str = "USD") -> dict | 
     return pricing
 
 
+def get_published_global_pricing(model: str, currency: str = "USD") -> dict | None:
+    """Return published Global Standard rates when API meters are not yet available."""
+    if currency.upper() != "USD":
+        return None
+    rates = PUBLISHED_GLOBAL_RATES_USD_PER_1M.get(model.lower())
+    if not rates:
+        return None
+    return {
+        meter_type: {
+            "meter_name": f"{model} {meter_type} Global Standard",
+            "retail_price": price,
+            "unit_of_measure": "1M tokens",
+            "tokens_per_unit": 1_000_000,
+        }
+        for meter_type, price in rates.items()
+    } | {
+        "source": "Azure OpenAI pricing page",
+        "source_url": AZURE_OPENAI_PRICING_URL,
+        "verified_date": "2026-09-11",
+    }
+
+
 def calculate_cost(usage: dict, pricing: dict | None) -> float | None:
     """Calculate one response's retail cost from actual token usage."""
     if not usage or not pricing:
@@ -229,11 +258,20 @@ def load_model_pricing(
         try:
             pricing = get_model_pricing(model, region, currency)
             if pricing:
+                pricing["source"] = "Azure Retail Prices API"
                 pricing_by_model[model] = pricing
             else:
-                errors[model] = "no matching standard input/output token meters"
+                pricing = get_published_global_pricing(model, currency)
+                if pricing:
+                    pricing_by_model[model] = pricing
+                else:
+                    errors[model] = "no matching standard input/output token meters"
         except (OSError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
-            errors[model] = str(exc)
+            pricing = get_published_global_pricing(model, currency)
+            if pricing:
+                pricing_by_model[model] = pricing
+            else:
+                errors[model] = str(exc)
     return pricing_by_model, errors
 
 
@@ -333,7 +371,7 @@ def run_comparison(client, models: list[str], region: str, currency: str = "USD"
         average = sum(latencies) / len(latencies) if latencies else 0
         print(f"  Avg latency - {model}: {average:.0f}ms")
 
-    print(f"\n  Retail pricing: {currency.upper()} in {region} (Azure Retail Prices API)")
+    print(f"\n  Pricing estimate: {currency.upper()} (Azure published retail rates)")
     model_costs = {}
     for model in models:
         model_results = [
@@ -352,6 +390,10 @@ def run_comparison(client, models: list[str], region: str, currency: str = "USD"
 
         cost = sum(item["estimated_cost"] or 0 for item in model_results)
         model_costs[model] = cost
+        source = pricing.get("source", "Azure Retail Prices API")
+        if pricing.get("verified_date"):
+            source += f", verified {pricing['verified_date']}"
+        print(f"  {model} pricing source: {source}")
         print(
             f"  {model} rates: input ${pricing['input']['retail_price']:.6f}/"
             f"{pricing['input']['unit_of_measure']}, output "
