@@ -905,7 +905,10 @@ infra:
 
 > The managed-lab lifecycle installs these dependencies before the session starts.
 
-Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be `.venv`. If it is not, run **Python: Select Interpreter** from the Command Palette and choose `.venv\Scripts\python.exe`.
+Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be `.venv`. 
+!IMAGE[Status Bar](instructions356855/status_bar.png)
+
+If it is not, run **Python: Select Interpreter** from the Command Palette and choose `.venv\Scripts\python.exe`.
 
 Then verify the environment:
 
@@ -936,6 +939,13 @@ Before creating a cloud version, run the same Python entry point locally and che
 5. Confirm that the response is one JSON object with sentiment, confidence, topics, review category, and summary fields.
 
 The exact labels can vary, but the agent should identify both the delivery problem and the positive support experience. Stop the debugger when the check is complete.
+
+Inspect the **Overview** tab in the Agent Inspector to see a summary of the agent's status, recent requests, and responses. You'll also see:
+- A **Tokens** panel showing the token usage for each request and response, as well as the total token count for the session.
+- A **Events** panel showing the sequence of events for each request and response, including any errors or warnings.
+- A **Tools** panel showing the details of tool calls made by the agent, including input parameters and output results. In this scenario, we do not have any tool calls.
+
+!IMAGE[Inspector logs](instructions356855/inspector_logs.png)
 
 The local entry point reads `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` from the managed `.env` used in earlier parts. If the Inspector cannot connect, confirm the debug terminal reaches `AgentServerHost started` and update Foundry Toolkit before changing the agent code.
 
@@ -998,8 +1008,9 @@ azd ai agent eval generate `
     --max-samples 15 `
     --out-file eval.yaml
 ```
+When asked, confirm `caldova-consumer-sentiment-agent` as the name of the evaluation suite. DO not include traces for evaluation generation.
 
-Inspect the generated dataset, evaluator definitions, rubric, and `eval.yaml` before running them. Confirm that the cases cover valid JSON, ordinary and mixed sentiment, regulated routing, and the prohibition on medical advice.
+Inspect the generated dataset - `src/agent/datasets/caldova-consumer-sentiment-agent/caldova-consumer-sentiment-agent_dg.jsonl`, the evaluator definitions and rubric - `src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json`, and the evaluation configuration - `src/agent/eval.yaml` - before running them. Confirm that the cases cover valid JSON, ordinary and mixed sentiment, regulated routing, and the prohibition on medical advice.
 
 ```powershell
 azd ai agent eval run --config eval.yaml
@@ -1056,7 +1067,7 @@ Test the new value in the hosted-agent playground. This reinforces the direct ed
 
 ## Objective
 
-Review the complete journey from discovering a model in the Foundry catalog to deploying a production-ready hosted agent for Caldova's B2C consumer sentiment analysis. This lab consolidates what you built, the skills you acquired, and where to go next.
+Review the complete journey from discovering a model in the Foundry Toolkit catalog to deploying a production-ready hosted agent for Caldova's B2C consumer sentiment analysis. This lab consolidates what you built, the skills you acquired, and where to go next.
 
 ## What you built
 

@@ -123,6 +123,12 @@ infra:
 
 > This step is shared by both Part A and Part B — do it once before you start.
 
+Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be `.venv`.
+
+![VS Code status bar showing the selected virtual environment](images/status_bar.png)
+
+If it is not, run **Python: Select Interpreter** from the Command Palette and choose the Python executable under `.venv`.
+
 The agent uses packages that are separate from the main lab requirements, and both deployment paths need them. Install them first:
 
 ```powershell
@@ -149,6 +155,14 @@ You have reviewed the agent and its deployment contract. Before creating a cloud
 5. Confirm that the response is one JSON object with sentiment, confidence, topics, review category, and summary fields.
 
 The exact labels can vary, but the agent should identify both the delivery problem and the positive support experience. Stop the debugger when the check is complete.
+
+Inspect the **Overview** tab in the Agent Inspector to see a summary of the agent's status, recent requests, and responses. You will also see:
+
+- A **Tokens** panel showing token usage for each request and response, as well as the total token count for the session.
+- An **Events** panel showing the sequence of events for each request and response, including any errors or warnings.
+- A **Tools** panel showing details of tool calls made by the agent, including input parameters and results. This agent does not make tool calls, so the panel will be empty.
+
+![Agent Inspector overview showing request and response details](images/inspector_logs.png)
 
 The local entry point reads `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` from the same managed `.env` used in earlier labs. If the Inspector cannot connect, confirm the debug terminal reaches `AgentServerHost started` and update Foundry Toolkit before changing the agent code.
 
@@ -216,13 +230,15 @@ azd ai agent eval generate `
   --out-file eval.yaml
 ```
 
+When prompted, confirm `caldova-consumer-sentiment-agent` as the evaluation suite name. Do not include traces for evaluation generation.
+
 Foundry creates three reviewable assets for the agent:
 
-- `eval.yaml`, which connects the agent, dataset, evaluators, and evaluation model.
-- A synthetic dataset tuned to the agent's domain, stored beside the evaluation configuration.
-- Evaluator definitions, including a rubric based on the evaluation brief, stored beside the evaluation configuration.
+- `src/agent/eval.yaml`, which connects the agent, dataset, evaluators, and evaluation model.
+- `src/agent/datasets/caldova-consumer-sentiment-agent/caldova-consumer-sentiment-agent_dg.jsonl`, the synthetic dataset tuned to the agent's domain.
+- `src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json`, the evaluator definitions and rubric based on the evaluation brief.
 
-Open the generated files before running them. Check that the cases cover ordinary sentiment, mixed feedback, regulated review routing, valid JSON, and the prohibition on medical advice.
+Open these files before running them. Check that the cases cover ordinary sentiment, mixed feedback, regulated review routing, valid JSON, and the prohibition on medical advice.
 
 Run the generated evaluation:
 
