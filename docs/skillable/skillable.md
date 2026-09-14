@@ -16,9 +16,6 @@ You are an AI developer on Caldova's commercial digital and customer engagement 
 
 In this lab, you will explore the Microsoft Foundry model catalog -- directly inside Visual Studio Code using the **Foundry Toolkit** extension -- to find a model that can power Caldova's consumer sentiment analysis pipeline.
 
-!IMAGE[trust.png](instructions356855/mermaid_diagram2.png)
-
-
 ## Objective
 Explore the Foundry Toolkit model catalog in Visual Studio Code to discover available hosted models, understand model capabilities, and identify a model suitable for inference-based tasks like product review moderation.
 
@@ -27,13 +24,7 @@ Explore the Foundry Toolkit model catalog in Visual Studio Code to discover avai
 1. Open Visual Studio Code by launching it from the Start menu or desktop.
 2. In VS Code, select **File → Open Folder**.
 3. Navigate to the `Desktop` folder, select `ILL335`, and click **Select folder**.
-4. When prompted with "Do you trust the authors of the files in this folder?", select **Yes, I trust the authors**.
-!IMAGE[trust.png](instructions356855/trust.png)
-5. You should see the project files in the sidebar.
-
-> **Note:** If you don't see the screen above - with the question "Do you trust the authors of the files in this folder?" - but you see a "Restricted Mode" alert on the top, click on "Manage" and then "Trust".
-    
-!IMAGE[restricted_mode_alert.png](instructions356855/restricted_mode_alert.png)
+4. You should see the project files in the sidebar.
 
 
 ## Step 2: Open the Foundry Toolkit in Visual Studio Code
