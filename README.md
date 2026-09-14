@@ -81,6 +81,11 @@ For more information, visit the [Learn MCP Server repo](https://aka.ms/learnmcp)
         <sub><b>Lee Stott</b></sub></a><br />
             <a href="https://github.com/leestott" title="talk">📢</a>
     </td>
+    <td align="center"><a href="https://github.com/carlotta94c">
+        <img src="https://github.com/carlotta94c.png" width="100px;" alt="Carlotta Castelluccio"/><br />
+        <sub><b>Carlotta Castelluccio</b></sub></a><br />
+            <a href="https://github.com/carlotta94c" title="talk">📢</a>
+    </td>
 </tr></table>
 
 ### Deliver this session
