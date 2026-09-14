@@ -910,17 +910,20 @@ infra:
 ```
 ---
 
-## Install agent dependencies
+## Verify agent dependencies
 
-> This step is shared by both Part A and Part B - do it once before you start.
+> The managed-lab lifecycle installs these dependencies before the session starts.
 
-The agent uses packages that are separate from the main lab requirements, and both deployment paths need them. Install them first:
+Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be `.venv`. If it is not, run **Python: Select Interpreter** from the Command Palette and choose `.venv\Scripts\python.exe`.
+
+Then verify the environment:
 
 ```powershell
-pip install -r src/agent/requirements.txt
+python -m pip check
+python -c "import debugpy; print(debugpy.__version__)"
 ```
 
-This includes the Agent Framework hosting adapter and **debugpy** for local debugging.
+The agent environment includes the Agent Framework hosting adapter and **debugpy** for local debugging. If either command fails, notify the instructor rather than installing packages into the global Python interpreter.
 
 ======
 
