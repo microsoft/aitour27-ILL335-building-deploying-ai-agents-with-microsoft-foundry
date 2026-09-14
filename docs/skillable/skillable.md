@@ -103,7 +103,9 @@ The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-eff
 
 1. Back in VS Code, under **Developer Tools → Build** in the toolkit panel, open the **Model Playground**.
 2. Select **gpt-5.4-mini** from the model dropdown.
+
 > **Note:** You see this model listed because it is pre-provisioned in your Foundry project. You do not need to deploy it yourself.
+
 3. In the **System prompt** (instructions) field, enter:
 
     ```text
@@ -451,7 +453,7 @@ def analyze_feedback(client, model: str, feedback: str) -> dict:
             "sentiment": "MIXED",
             "confidence": 0.0,
             "topics": ["OTHER"],
-            "review_category": "CONTENT_SAFETY",
+            "review_category": "NONE",
             "summary": f"Model returned non-JSON output: {raw[:100]}",
         }
 ```
@@ -464,14 +466,14 @@ Key design decisions:
 | JSON output format | Machine-parseable, no regex needed |
 | Structured system prompt | Reliable, consistent categorization |
 | try/except around inference | Catches Azure content safety filter blocks gracefully |
-| try/except around json.loads() | Falls back to a conservative CONTENT_SAFETY result if the model returns malformed output |
+| try/except around json.loads() | Falls back to a default NONE result if the model returns malformed output |
 
 ### 2b. Apply governed routing logic
 
 ```python
 def route_feedback(result: dict) -> str:
     """Route insights to analytics or an appropriate human review queue."""
-    review_category = result.get("review_category", "CONTENT_SAFETY")
+    review_category = result.get("review_category", "NONE")
     confidence = result.get("confidence", 0.0)
 
     if review_category != "NONE":
@@ -500,7 +502,7 @@ def process_feedback(client, model: str, feedback: str) -> dict:
         "sentiment": analysis.get("sentiment", "MIXED"),
         "confidence": analysis.get("confidence", 0.0),
         "topics": analysis.get("topics", ["OTHER"]),
-        "review_category": analysis.get("review_category", "CONTENT_SAFETY"),
+        "review_category": analysis.get("review_category", "NONE"),
         "summary": analysis.get("summary", ""),
         "action": route_feedback(analysis),
     }
@@ -819,16 +821,6 @@ The Foundry Toolkit runs the agent locally for inspection, while `azd` packages 
 | Deployment | Direct code through `azure.yaml` and `azd up` |
 | History | Managed by the Foundry platform |
 | Identity | Azure identity; no credentials stored in source |
-
-## Prerequisites
-
-- Foundry Toolkit 1.6.12 or later installed and signed in to Azure (from Lab 1). If the extension was updated, run **Developer: Reload Window** before pressing F5.
-- Azure Developer CLI (`azd`) 1.27.1 or later.
-- The Microsoft Foundry extension bundle installed with `azd ext install microsoft.foundry`.
-- `.env` with `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` set.
-- The agent dependencies are listed in `src/agent/requirements.txt` and will be installed later in the lab.
-
-Before Part A, open **Extensions**, find **Foundry Toolkit**, select **Switch to Pre-Release Version** or **Update** if offered, and confirm version 1.6.12 or later. Then run **Developer: Reload Window** from the Command Palette so the updated Agent Inspector is active.
 
 > **Note:** The `microsoft.foundry` meta-extension installs compatible `azure.ai.*` providers, including the project and hosted-agent providers used by this lab.
 

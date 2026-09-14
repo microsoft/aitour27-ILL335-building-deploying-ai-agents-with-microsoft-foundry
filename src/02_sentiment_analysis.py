@@ -92,14 +92,14 @@ def analyze_feedback(client, model: str, feedback: str) -> dict:
             "sentiment": "MIXED",
             "confidence": 0.0,
             "topics": ["OTHER"],
-            "review_category": "CONTENT_SAFETY",
+            "review_category": "NONE",
             "summary": f"Model returned non-JSON output: {raw[:100]}",
         }
 
 
 def route_feedback(result: dict) -> str:
     """Route insights to analytics or an appropriate human review queue."""
-    review_category = result.get("review_category", "CONTENT_SAFETY")
+    review_category = result.get("review_category", "NONE")
     confidence = result.get("confidence", 0.0)
 
     if review_category != "NONE":
@@ -117,7 +117,7 @@ def process_feedback(client, model: str, feedback: str) -> dict:
         "sentiment": analysis.get("sentiment", "MIXED"),
         "confidence": analysis.get("confidence", 0.0),
         "topics": analysis.get("topics", ["OTHER"]),
-        "review_category": analysis.get("review_category", "CONTENT_SAFETY"),
+        "review_category": analysis.get("review_category", "NONE"),
         "summary": analysis.get("summary", ""),
         "action": route_feedback(analysis),
     }
