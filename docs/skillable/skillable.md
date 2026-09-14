@@ -906,7 +906,7 @@ infra:
 > The managed-lab lifecycle installs these dependencies before the session starts.
 
 Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be `.venv`. 
-!IMAGE[Status Bar](instructions356855/status_bar.png)
+!IMAGE[status_bar.png](instructions356855/status_bar.png)
 
 If it is not, run **Python: Select Interpreter** from the Command Palette and choose `.venv\Scripts\python.exe`.
 
@@ -945,7 +945,7 @@ Inspect the **Overview** tab in the Agent Inspector to see a summary of the agen
 - A **Events** panel showing the sequence of events for each request and response, including any errors or warnings.
 - A **Tools** panel showing the details of tool calls made by the agent, including input parameters and output results. In this scenario, we do not have any tool calls.
 
-!IMAGE[Inspector logs](instructions356855/inspector_logs.png)
+!IMAGE[inspector_logs.png](instructions356855/inspector_logs.png)
 
 The local entry point reads `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` from the managed `.env` used in earlier parts. If the Inspector cannot connect, confirm the debug terminal reaches `AgentServerHost started` and update Foundry Toolkit before changing the agent code.
 
