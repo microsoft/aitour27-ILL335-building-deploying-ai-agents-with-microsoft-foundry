@@ -13,7 +13,7 @@ try {
     $tenantId  = "@lab.CloudSubscription.TenantId"
     $subId     = "@lab.CloudSubscription.Id"
     $region    = "@lab.CloudResourceGroup(ResourceGroup1).Location"
-    $envName   = "build@lab.LabInstance.Id"
+    $envName   = "aitour@lab.LabInstance.Id"
     $userUpn   = "@lab.CloudPortalCredential(User1).Username"
 
     $ErrorActionPreference = "Stop"
