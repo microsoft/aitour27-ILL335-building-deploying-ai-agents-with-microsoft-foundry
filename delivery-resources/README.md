@@ -6,8 +6,14 @@ This folder contains the presenter and attendee decks plus the guidance needed t
 
 The current lab is built for the AI Tour FY27 Skillable environment. Attendee projects and model deployments are pre-provisioned; self-paced presenters can use [`../setup/SETUP.md`](../setup/SETUP.md) to create an equivalent environment.
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 👤 Who this guide is for
 
 - **Lead presenters** delivering the 75-minute lab session on stage or in a hands-on lab room
@@ -17,8 +23,14 @@ The current lab is built for the AI Tour FY27 Skillable environment. Attendee pr
 
 If you are an **attendee** working through the lab, start at the root [README](../README.md) and [docs/lab1-discover-models.md](../docs/lab1-discover-models.md) instead.
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## ⏱ Session at a glance
 
 | Block | Duration | Content type | Notes |
@@ -36,8 +48,14 @@ If you are an **attendee** working through the lab, start at the root [README](.
 
 Full timing detail is in [`../session-outline.md`](../session-outline.md).
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 🎯 Learning outcomes you are delivering
 
 Reinforce these three messages at the start, in the middle, and at the close:
@@ -48,8 +66,14 @@ Reinforce these three messages at the start, in the middle, and at the close:
 
 If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK pattern is the foundation).
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## ✅ Pre-session checklist (do this 24–48 hours before delivery)
 
 ### Trainer environment
@@ -79,8 +103,14 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
 - [ ] Share the [troubleshooting cheat sheet](#-troubleshooting-cheat-sheet-for-proctors) below.
 - [ ] Agree on a hand-signal / raised-card system so attendees can flag for help without interrupting the speaker.
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 🧭 Delivery flow — what to say and do, lab by lab
 
 ### Introduction (3 min) — set the scene
@@ -162,8 +192,14 @@ If an attendee leaves with only one of these, make it #1 (Foundry + OpenAI SDK p
   - [Microsoft AI learning hub](https://learn.microsoft.com/ai/)
 - Take questions in chat / Q&A — don't run over.
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 🧯 Troubleshooting cheat sheet (for proctors)
 
 The vast majority of attendee issues fall into one of these buckets. Triage in this order:
@@ -183,8 +219,14 @@ The vast majority of attendee issues fall into one of these buckets. Triage in t
 
 If you hit something **not** on this list, write it down — we want to add it. File an issue against the repo (see [AGENTS.md](../AGENTS.md) for the issue process).
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 🛠 Tips for proctors on the floor
 
 - Stand at the back/side; scan for raised hands or stuck attendees (frozen screens, confused expressions).
@@ -193,8 +235,14 @@ If you hit something **not** on this list, write it down — we want to add it. 
 - Don't get stuck on one attendee for more than 5 minutes. Get them past the blocker (even by sharing a working `.env`) so the rest of the room keeps moving.
 - For quota / subscription issues that can't be fixed in-room, pair them with a neighbour or point them to the [self-paced setup](../setup/SETUP.md) so they can finish later.
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 🔁 Re-delivering this lab (community events, internal training)
 
 You are welcome and encouraged to re-deliver this content. A few asks:
@@ -209,8 +257,14 @@ You are welcome and encouraged to re-deliver this content. A few asks:
   - **Full 75-min AI Tour version:** as documented above
   - **Half-day workshop:** all labs including Lab 5 (model comparison), with longer hands-on time per section
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## 📚 Related resources
 
 - [`ILL335-Train-the-Trainer-FY27.pptx`](ILL335-Train-the-Trainer-FY27.pptx) — presenter readiness, timing, checkpoints, and recovery guidance
@@ -222,8 +276,14 @@ You are welcome and encouraged to re-deliver this content. A few asks:
 - [`../cleanup/CLEANUP.md`](../cleanup/CLEANUP.md) — resource cleanup instructions
 - [`../AGENTS.md`](../AGENTS.md) — repo contribution and issue-filing guidelines
 
----
+## Core materials
 
+| Item | Link | Notes |
+|:--|:--|:--|
+| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Session recording | [Recording](https://aka.ms/aitour27/ILL335/youtube) | Optional URL when available |
+
+---
 ## ❓ Questions or feedback on delivery
 
 If you spot a gap in this guide, or you want to share what worked / didn't work when you delivered this lab, please **open an issue** on the repo using the issue templates in [`.github/ISSUE_TEMPLATE/`](../.github/ISSUE_TEMPLATE/). Tag it with the `train-the-trainer` label (or request the label if it doesn't exist yet).
