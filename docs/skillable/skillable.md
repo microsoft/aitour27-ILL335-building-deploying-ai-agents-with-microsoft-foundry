@@ -22,9 +22,7 @@ Explore the Foundry Toolkit model catalog in Visual Studio Code to discover avai
 ## Step 1: Open the project in VS Code
 
 1. Open Visual Studio Code by launching it from the Start menu or desktop.
-2. In VS Code, select **File → Open Folder**.
-3. Navigate to the `Desktop` folder, select `ILL335`, and click **Select folder**.
-4. You should see the project files in the sidebar.
+2. You should see the lab workspace loaded and the project files in the sidebar.
 
 
 ## Step 2: Open the Foundry Toolkit in Visual Studio Code
@@ -47,6 +45,9 @@ The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already insta
     If prompted for a Password: +++@lab.CloudPortalCredential(User1).Password+++
 5. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
 
+> **Note:** If no Foundry Projects is retrieved and listed for selection, it probably means that the resources provisioning for the lab hasn't been completed yet. Move to step 3 and continue exploring the model catalog while waiting for the provisioning to complete. then come back to this step in a few minutes and retry. 
+!IMAGE[no_matching_resources.png](instructions356855/no_matching_resources.png)
+
 The toolkit panel is your central hub for browsing models, testing them in a playground, and working with agents -- all from within VS Code.
 
 ## Step 3: Explore the model catalog
@@ -57,7 +58,7 @@ In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog*
     
 > **Tip:** You can close the GitHub Copilot Chat window on the right side of the editor for now to have more space to explore the model catalog.
 
-Browse the available models. Use the filters at the top of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
+Browse the available models. Use the filters in the left-side toolbar of the catalog UI to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by feature (Web Search, Image Attachment, etc.).
 
 !IMAGE[filters.png](instructions356855/filters.png)
 
@@ -95,7 +96,7 @@ The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-eff
 1. Back in VS Code, under **Developer Tools → Build** in the toolkit panel, open the **Model Playground**.
 2. Select **gpt-5.4-mini** from the model dropdown.
 
-> **Note:** You see this model listed because it is pre-provisioned in your Foundry project. You do not need to deploy it yourself.
+> **Note:** You see this model listed because it is pre-provisioned in your Foundry project. You do not need to deploy it yourself. If you cannot see it, come back to step 2 and ensure you connected to the provisioned Foundry project correctly.
 
 3. In the **System prompt** (instructions) field, enter:
 
