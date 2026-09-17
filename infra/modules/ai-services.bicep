@@ -14,12 +14,6 @@ param aiServicesName string
 @description('Name for the Foundry project')
 param projectName string
 
-@description('Application Insights resource ID for project telemetry')
-param applicationInsightsId string
-
-@description('Application Insights connection string for project telemetry')
-param applicationInsightsConnectionString string
-
 // Model deployment parameters
 @description('Primary model name')
 param modelName string
@@ -89,27 +83,6 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
   properties: {
     description: 'ILL335 - Building & Deploying AI Agents with Microsoft Foundry'
     displayName: projectName
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Application Insights Connection on the Project
-// ---------------------------------------------------------------------------
-resource appInsightsConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = {
-  parent: project
-  name: 'appi-connection'
-  properties: {
-    category: 'AppInsights'
-    target: applicationInsightsId
-    authType: 'ApiKey'
-    isSharedToAll: true
-    credentials: {
-      key: applicationInsightsConnectionString
-    }
-    metadata: {
-      ApiType: 'Azure'
-      ResourceId: applicationInsightsId
-    }
   }
 }
 

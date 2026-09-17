@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.42.1.51946",
-      "templateHash": "10036618113069196075"
+      "templateHash": "4838404294965121136"
     }
   },
   "parameters": {
@@ -22,6 +22,30 @@
       "minLength": 1,
       "metadata": {
         "description": "Primary location for all resources"
+      }
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource group name supplied by the Microsoft Foundry provider"
+      }
+    },
+    "foundryProjectName": {
+      "type": "string",
+      "metadata": {
+        "description": "Foundry project name supplied by the Microsoft Foundry provider"
+      }
+    },
+    "resourceTokenSalt": {
+      "type": "string",
+      "metadata": {
+        "description": "Salt supplied by the Microsoft Foundry provider for deterministic resource names"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags supplied by the Microsoft Foundry provider"
       }
     },
     "modelName": {
@@ -60,8 +84,8 @@
       }
     },
     "deploySecondModel": {
-      "type": "bool",
-      "defaultValue": false,
+      "type": "string",
+      "defaultValue": "false",
       "metadata": {
         "description": "Optional: deploy a second model for comparison lab"
       }
@@ -116,25 +140,23 @@
       "containerRegistries": "acr"
     },
     "abbrs": "[variables('$fxv#0')]",
-    "resourceToken": "[toLower(uniqueString(subscription().id, parameters('environmentName'), parameters('location')))]",
-    "tags": {
-      "azd-env-name": "[parameters('environmentName')]",
-      "session": "ill335"
-    }
+    "resourceToken": "[toLower(uniqueString(subscription().id, parameters('environmentName'), parameters('location'), parameters('resourceTokenSalt')))]",
+    "shouldDeploySecondModel": "[equals(toLower(parameters('deploySecondModel')), 'true')]",
+    "resourceTags": "[union(parameters('tags'), createObject('azd-env-name', parameters('environmentName'), 'session', 'ill335'))]"
   },
   "resources": [
     {
       "type": "Microsoft.Resources/resourceGroups",
       "apiVersion": "2024-03-01",
-      "name": "[format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))]",
+      "name": "[parameters('resourceGroupName')]",
       "location": "[parameters('location')]",
-      "tags": "[variables('tags')]"
+      "tags": "[variables('resourceTags')]"
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "monitoring",
-      "resourceGroup": "[format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))]",
+      "resourceGroup": "[parameters('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -145,7 +167,7 @@
             "value": "[parameters('location')]"
           },
           "tags": {
-            "value": "[variables('tags')]"
+            "value": "[variables('resourceTags')]"
           },
           "logAnalyticsName": {
             "value": "[format('{0}{1}', variables('abbrs').operationalInsightsWorkspaces, variables('resourceToken'))]"
@@ -245,14 +267,14 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName')))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "ai-services",
-      "resourceGroup": "[format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))]",
+      "resourceGroup": "[parameters('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -263,19 +285,13 @@
             "value": "[parameters('location')]"
           },
           "tags": {
-            "value": "[variables('tags')]"
+            "value": "[variables('resourceTags')]"
           },
           "aiServicesName": {
             "value": "[format('{0}{1}', variables('abbrs').cognitiveServicesAccounts, variables('resourceToken'))]"
           },
           "projectName": {
-            "value": "[format('{0}-project', parameters('environmentName'))]"
-          },
-          "applicationInsightsId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsId.value]"
-          },
-          "applicationInsightsConnectionString": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsConnectionString.value]"
+            "value": "[parameters('foundryProjectName')]"
           },
           "modelName": {
             "value": "[parameters('modelName')]"
@@ -293,7 +309,7 @@
             "value": "[parameters('modelCapacity')]"
           },
           "deploySecondModel": {
-            "value": "[parameters('deploySecondModel')]"
+            "value": "[variables('shouldDeploySecondModel')]"
           },
           "secondModelName": {
             "value": "[parameters('secondModelName')]"
@@ -312,7 +328,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.42.1.51946",
-              "templateHash": "9717518187313840686"
+              "templateHash": "17926908921714819036"
             }
           },
           "parameters": {
@@ -338,18 +354,6 @@
               "type": "string",
               "metadata": {
                 "description": "Name for the Foundry project"
-              }
-            },
-            "applicationInsightsId": {
-              "type": "string",
-              "metadata": {
-                "description": "Application Insights resource ID for project telemetry"
-              }
-            },
-            "applicationInsightsConnectionString": {
-              "type": "string",
-              "metadata": {
-                "description": "Application Insights connection string for project telemetry"
               }
             },
             "modelName": {
@@ -451,27 +455,6 @@
               ]
             },
             {
-              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
-              "apiVersion": "2025-04-01-preview",
-              "name": "[format('{0}/{1}/{2}', parameters('aiServicesName'), parameters('projectName'), 'appi-connection')]",
-              "properties": {
-                "category": "AppInsights",
-                "target": "[parameters('applicationInsightsId')]",
-                "authType": "ApiKey",
-                "isSharedToAll": true,
-                "credentials": {
-                  "key": "[parameters('applicationInsightsConnectionString')]"
-                },
-                "metadata": {
-                  "ApiType": "Azure",
-                  "ResourceId": "[parameters('applicationInsightsId')]"
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('projectName'))]"
-              ]
-            },
-            {
               "type": "Microsoft.CognitiveServices/accounts/deployments",
               "apiVersion": "2025-06-01",
               "name": "[format('{0}/{1}', parameters('aiServicesName'), parameters('modelName'))]",
@@ -543,8 +526,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'monitoring')]",
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName')))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
       ]
     },
     {
@@ -552,7 +534,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "role-assignments",
-      "resourceGroup": "[format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))]",
+      "resourceGroup": "[parameters('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -566,7 +548,7 @@
             "value": "[parameters('principalType')]"
           },
           "aiServicesName": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.aiServicesName.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.aiServicesName.value]"
           }
         },
         "template": {
@@ -636,35 +618,39 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services')]",
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
       ]
     }
   ],
   "outputs": {
     "AZURE_RESOURCE_GROUP": {
       "type": "string",
-      "value": "[format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))]"
+      "value": "[parameters('resourceGroupName')]"
     },
     "AZURE_AI_SERVICES_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.aiServicesName.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.aiServicesName.value]"
     },
     "AZURE_AI_PROJECT_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectName.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectName.value]"
     },
     "AZURE_AI_PROJECT_ID": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectId.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectId.value]"
     },
     "AZURE_AI_PROJECT_ENDPOINT": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectEndpoint.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectEndpoint.value]"
+    },
+    "FOUNDRY_PROJECT_ENDPOINT": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'ai-services'), '2025-04-01').outputs.projectEndpoint.value]"
     },
     "AZURE_APPLICATION_INSIGHTS_NAME": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('{0}{1}', variables('abbrs').resourcesResourceGroups, parameters('environmentName'))), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsName.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.applicationInsightsName.value]"
     },
     "MODEL_DEPLOYMENT_NAME": {
       "type": "string",
@@ -672,7 +658,7 @@
     },
     "MODEL_DEPLOYMENT_NAME_2": {
       "type": "string",
-      "value": "[if(parameters('deploySecondModel'), parameters('secondModelName'), '')]"
+      "value": "[if(variables('shouldDeploySecondModel'), parameters('secondModelName'), '')]"
     }
   }
 }

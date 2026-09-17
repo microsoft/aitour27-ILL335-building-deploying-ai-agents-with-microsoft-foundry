@@ -107,8 +107,6 @@ module aiServices './modules/ai-services.bicep' = {
     tags: resourceTags
     aiServicesName: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     projectName: foundryProjectName
-    applicationInsightsId: monitoring.outputs.applicationInsightsId
-    applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
     modelName: modelName
     modelVersion: modelVersion
     modelFormat: modelFormat
