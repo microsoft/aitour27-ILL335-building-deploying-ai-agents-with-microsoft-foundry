@@ -46,6 +46,7 @@ The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already insta
 5. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
 
 > **Note:** If no Foundry Projects is retrieved and listed for selection, it probably means that the resources provisioning for the lab hasn't been completed yet. Move to step 3 and continue exploring the model catalog while waiting for the provisioning to complete. then come back to this step in a few minutes and retry. 
+
 !IMAGE[no_matching_resources.png](instructions356855/no_matching_resources.png)
 
 The toolkit panel is your central hub for browsing models, testing them in a playground, and working with agents -- all from within VS Code.
@@ -128,13 +129,13 @@ The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-eff
 
 ## Objective
 
-Validate that your lab project environment is configured correctly -- ensuring the `.env` file, dependencies, and CLI tools are all in place before you start writing code.
+Validate that your lab project environment is configured correctly -- ensuring the **.env** file, dependencies, and CLI tools are all in place before you start writing code.
 
 ## Step 1: Validate the .env is correct
 
-In VS Code, navigate to the file explorer and ensure that the `.env` file has been created in the root of your project.
+In VS Code, navigate to the file explorer and ensure that the **.env** file has been created in the root of your project.
 
-1. Open the `.env` file from the root of the project folder.
+1. Open the **.env** file from the root of the project folder.
 2. Confirm the following variables exist:
 
     ```text
@@ -145,8 +146,8 @@ In VS Code, navigate to the file explorer and ensure that the `.env` file has be
     AZURE_PRICING_CURRENCY
     ```
 
-    `MODEL_DEPLOYMENT_NAME_2` is used only by the optional model comparison lab.
-3. These values are generated  and pre-filled by an automated script that runs before the lab machine is started. If a value is missing or still contains a placeholder, contact your instructor or proctor instead of replacing the managed `.env` with `.env.sample`.
+    **MODEL_DEPLOYMENT_NAME_2** is used only by the optional model comparison lab.
+3. These values are generated  and pre-filled by an automated script that runs before the lab machine is started. If a value is missing or still contains a placeholder, contact your instructor or proctor instead of replacing the managed **.env** with **.env.sample**.
 
 > **Tip:** To confirm the project endpoint, navigate to https://ai.azure.com, from the VM browser and sign in, with the credentials you used to configure your project in the Foundry Toolkit extension. You'll see the project endpoint on the project home page. 
 
@@ -171,7 +172,7 @@ Run the included validation script to confirm that all files, dependencies, CLI 
     Result: PASS -- lab is ready!
     ```
 
-    The exact check count can change as the workshop evolves. Confirm that the failed count is zero and the final result is `PASS`.
+    The exact check count can change as the workshop evolves. Confirm that the failed count is zero and the final result is **PASS**.
 
 If any checks fail, the output tells you exactly what to fix. Common issues:
 
@@ -179,8 +180,8 @@ If any checks fail, the output tells you exactly what to fix. Common issues:
 |---------|-----|
 | Missing file | Re-check your azd provision output for errors |
 | CLI not found | Install the missing tool (see SETUP.md) |
-| Package not installed | Run `pip install -r requirements.txt` inside your `.venv` |
-| .env not configured | Copy `.env.sample` to `.env` and fill in your endpoint |
+| Package not installed | Run **pip install -r requirements.txt** inside your **.venv** |
+| .env not configured | Copy **.env.sample** to **.env** and fill in your endpoint |
 
 > **Tip:** Re-run validation after any fix to confirm it resolves the issue.
 
@@ -216,7 +217,7 @@ See the official [OpenAI Responses API guide](https://learn.microsoft.com/azure/
 
 ## Step 1: Review the code
 
-Open `src/01_first_inference.py`. The script first loads configuration and creates a project client with your signed-in Azure identity:
+Open **src/01_first_inference.py**. The script first loads configuration and creates a project client with your signed-in Azure identity:
 
 ```python
 load_dotenv()
@@ -230,7 +231,7 @@ project_client = AIProjectClient(
 )
 ```
 
-- **Loads** the project endpoint and model deployment from `.env`.
+- **Loads** the project endpoint and model deployment from **.env**.
 - **Authenticates** with your Azure identity instead of an API key.
 - **Establishes** a reusable client for your Foundry project.
 - **Provides** an OpenAI-compatible inference client:
@@ -263,8 +264,8 @@ print(
 )
 ```
 
-- **Returns** generated text through `response.output_text`.
-- **Reports** completion state through `response.status`.
+- **Returns** generated text through **response.output_text**.
+- **Reports** completion state through **response.status**.
 - **Exposes** input, output, and total token counts for monitoring and cost analysis.
 
 ## Step 2: Run the code
@@ -293,10 +294,10 @@ If the script fails, check these common causes:
 
 | Error | Likely cause | Fix |
 |-------|--------------|-----|
-| Missing `PROJECT_ENDPOINT` | `.env` is missing or incomplete | Restore the value produced in Lab 2 |
-| `DefaultAzureCredential` failed | Azure sign-in expired | Run `az login` |
-| Resource not found | Deployment name does not match | Verify `MODEL_DEPLOYMENT_NAME` |
-| Request remains incomplete | Service or safety condition interrupted generation | Inspect `response.status` and the full response |
+| Missing **PROJECT_ENDPOINT** | **.env** is missing or incomplete | Restore the value produced in Lab 2 |
+| **DefaultAzureCredential** failed | Azure sign-in expired | Run **az login** |
+| Resource not found | Deployment name does not match | Verify **MODEL_DEPLOYMENT_NAME** |
+| Request remains incomplete | Service or safety condition interrupted generation | Inspect **response.status** and the full response |
 
 ## Step 3: Experiment with instructions and input
 
@@ -330,21 +331,21 @@ print(f"Status: {follow_up.status}")
 ```
 
 - **Continues** from the prior response without manually copying earlier turns.
-- **Keeps** the follow-up focused through `previous_response_id`.
+- **Keeps** the follow-up focused through **previous_response_id**.
 
 Do not include sensitive personal or medical data in prompts. For production workloads, follow your organization's data-handling and retention requirements.
 
 ## What you learned
 
-- ✅ How to authenticate with `DefaultAzureCredential`
-- ✅ How to obtain an OpenAI-compatible client from `AIProjectClient`
-- ✅ How to call `responses.create()` with `instructions` and `input`
-- ✅ How to read `output_text`, response status, and token usage
-- ✅ How to continue a conversation with `previous_response_id`
+- ✅ How to authenticate with **DefaultAzureCredential**
+- ✅ How to obtain an OpenAI-compatible client from **AIProjectClient**
+- ✅ How to call **responses.create()** with **instructions** and **input**
+- ✅ How to read **output_text**, response status, and token usage
+- ✅ How to continue a conversation with **previous_response_id**
 
 ## Key takeaway
 
-> The Responses API provides one beginner-friendly pattern for model interaction: send instructions and input with `responses.create()`, then inspect output text, status, and usage.
+> The Responses API provides one beginner-friendly pattern for model interaction: send instructions and input with **responses.create()**, then inspect output text, status, and usage.
 
 ======
 
@@ -372,11 +373,11 @@ Sentiment classification and regulated routing are **independent** of each other
 
 !IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture.png)
 
-This pipeline uses **prompt-based JSON**: the system prompt instructs the model to respond only with valid JSON. For even stricter guarantees, OpenAI models support [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), a `response_format` parameter that constrains the model to conform to a JSON schema. This lab uses the prompt-based approach for simplicity and portability across model providers.
+This pipeline uses **prompt-based JSON**: the system prompt instructs the model to respond only with valid JSON. For even stricter guarantees, OpenAI models support [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), a **response_format** parameter that constrains the model to conform to a JSON schema. This lab uses the prompt-based approach for simplicity and portability across model providers.
 
 ## Step 1: Review the system prompt
 
-The key to reliable sentiment analysis is a well-structured system prompt. Open `src/02_sentiment_analysis.py` and examine the `SYSTEM_PROMPT`:
+The key to reliable sentiment analysis is a well-structured system prompt. Open **src/02_sentiment_analysis.py** and examine the **SYSTEM_PROMPT**:
 
 ```python
 SYSTEM_PROMPT = """You are a consumer engagement insight analyst for Caldova, Microsoft's fictional global pharmaceutical company. Analyze feedback about Caldova products and support services.
@@ -477,11 +478,11 @@ def route_feedback(result: dict) -> str:
 
 This adds a **business logic layer** on top of the model's analysis:
 
-- Any regulated `review_category` (not `NONE`) → escalate for human review, regardless of sentiment or confidence.
+- Any regulated **review_category** (not **NONE**) → escalate for human review, regardless of sentiment or confidence.
 - High-confidence, non-regulated feedback → add to the sentiment dashboard for trend reporting.
 - Low-confidence, non-regulated feedback → route to a human for a second look.
 
-Routing is driven entirely by `review_category` and `confidence` -- **never** by `sentiment`. A POSITIVE review can still be escalated (for example, positive feedback that also mentions a symptom).
+Routing is driven entirely by **review_category** and **confidence** -- **never** by **sentiment**. A POSITIVE review can still be escalated (for example, positive feedback that also mentions a symptom).
 
 ### 2c. Process results
 
@@ -549,7 +550,7 @@ Total feedback: 5
 
 ## Step 4: Test with custom feedback
 
-The application also accepts interactive input. Run it with the `--interactive` flag:
+The application also accepts interactive input. Run it with the **--interactive** flag:
 
 ```powershell
 python src/02_sentiment_analysis.py --interactive
@@ -576,7 +577,7 @@ Confirm that the application routes the medical inquiry for human review and doe
 
 ## Step 5: Test with the sample dataset
 
-The `src/sample_feedback.json` file contains a broader set of test feedback spanning positive, neutral, negative, mixed, adverse-event, product-quality, and medical-inquiry cases. Run the batch test:
+The **src/sample_feedback.json** file contains a broader set of test feedback spanning positive, neutral, negative, mixed, adverse-event, product-quality, and medical-inquiry cases. Run the batch test:
 
 ```powershell
 python src/02_sentiment_analysis.py --file src/sample_feedback.json
@@ -584,7 +585,7 @@ python src/02_sentiment_analysis.py --file src/sample_feedback.json
 
 ## Step 6: Customize the routing logic
 
-Try adjusting the confidence threshold in the `route_feedback` function:
+Try adjusting the confidence threshold in the **route_feedback** function:
 
 | Threshold change | Effect |
 |-----------------|--------|
@@ -631,7 +632,7 @@ Comparing models on your **actual Caldova feedback data** helps you make informe
 
 ## Prerequisites
 
-Your given workspace already includes a `.env` file with the classroom project endpoint, model names, Azure region, and pricing currency. You can review the managed values with:
+Your given workspace already includes a **.env** file with the classroom project endpoint, model names, Azure region, and pricing currency. You can review the managed values with:
 
 ```powershell
 Get-Content .env
@@ -646,7 +647,7 @@ AZURE_LOCATION=<managed-lab-region>
 AZURE_PRICING_CURRENCY=USD
 ```
 
-To complete this lab, you also need the `gpt-5.4` deployment described below.
+To complete this lab, you also need the **gpt-5.4** deployment described below.
 To compare model pricing, the script first uses the Azure Retail Prices API. This API is public, so it does not require another API key or sign-in. If the newly released GPT-5.4 meters are not yet present, the script uses the published Global Standard USD rates from the Azure OpenAI pricing page and labels that fallback in the output.
 
 ### Deploying a new model
@@ -667,7 +668,7 @@ Wait for the deployment to complete before proceeding. You should see the pop-up
 
 ## Step 1: Review the comparison code
 
-Open `src/03_model_comparison.py`. The script retrieves input and output token rates from the unauthenticated [Azure Retail Prices API](https://learn.microsoft.com/rest/api/cost-management/retail-prices/azure-retail-prices), with a dated fallback to the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) for the two Global Standard lab models, then runs the same feedback through each model:
+Open **src/03_model_comparison.py**. The script retrieves input and output token rates from the unauthenticated [Azure Retail Prices API](https://learn.microsoft.com/rest/api/cost-management/retail-prices/azure-retail-prices), with a dated fallback to the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) for the two Global Standard lab models, then runs the same feedback through each model:
 
 ```python
 def compare_models(client, models, feedback, pricing_by_model=None):
@@ -741,13 +742,13 @@ Look for patterns in the comparison:
 
 The displayed amount is a retail cost estimate, not a billed charge. It does not include negotiated discounts, cached-token pricing, taxes, or other agreement-specific adjustments. See the [Azure OpenAI pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/) for billing details.
 
-> **Note:** The fallback is USD-only and specific to the lab's Global Standard `gpt-5.4-mini` and `gpt-5.4` deployments. Other models, currencies, or deployment types still show `pricing unavailable` when the API has no matching meters.
+> **Note:** The fallback is USD-only and specific to the lab's Global Standard **gpt-5.4-mini** and **gpt-5.4** deployments. Other models, currencies, or deployment types still show **pricing unavailable** when the API has no matching meters.
 
 > **Tip:** For this type of classification task, gpt-5.4-mini often matches gpt-5.4 performance at a fraction of the cost.
 
 ## Step 4: Try a hybrid approach
 
-A common production pattern is to use the cheaper model first and escalate low-confidence results to the more capable model. The comparison script includes a `--hybrid` mode:
+A common production pattern is to use the cheaper model first and escalate low-confidence results to the more capable model. The comparison script includes a **--hybrid** mode:
 
 ```powershell
 python src/03_model_comparison.py --hybrid
@@ -784,9 +785,9 @@ If you finish early, try these:
 
 ## Objective
 
-Deploy Caldova's consumer sentiment agent directly from Python source to Microsoft Foundry Agent Service. You will inspect the Agent Framework code, verify the direct-code service configuration in `azure.yaml`, test the agent locally with the Agent Inspector, deploy it to the cloud, and validate the hosted agent.
+Deploy Caldova's consumer sentiment agent directly from Python source to Microsoft Foundry Agent Service. You will inspect the Agent Framework code, verify the direct-code service configuration in **azure.yaml**, test the agent locally with the Agent Inspector, deploy it to the cloud, and validate the hosted agent.
 
-This lab has three parts. **Part A** tests the agent locally with the Foundry Toolkit. **Part B** deploys and verifies it with `azd`. **Part C** is an optional self-paced extension that generates and runs a structured evaluation against the deployed agent.
+This lab has three parts. **Part A** tests the agent locally with the Foundry Toolkit. **Part B** deploys and verifies it with **azd**. **Part C** is an optional self-paced extension that generates and runs a structured evaluation against the deployed agent.
 
 ## What is a hosted agent?
 
@@ -806,19 +807,19 @@ The Foundry Toolkit runs the agent locally for inspection, while `azd` packages 
 
 | Property | This lab |
 |----------|----------|
-| Source | `src/agent/app.py` and `src/agent/requirements.txt` |
+| Source |**src/agent/app.py** and **src/agent/requirements.txt** |
 | Runtime | Python 3.13 |
-| Host adapter | `ResponsesHostServer` |
+| Host adapter | **ResponsesHostServer** |
 | Protocol | Responses 2.0.0 |
-| Deployment | Direct code through `azure.yaml` and `azd up` |
+| Deployment | Direct code through **azure.yaml** and **azd up** |
 | History | Managed by the Foundry platform |
 | Identity | Azure identity; no credentials stored in source |
 
-> **Note:** The `microsoft.foundry` meta-extension installs compatible `azure.ai.*` providers, including the project and hosted-agent providers used by this lab.
+> **Note:** The **microsoft.foundry** meta-extension installs compatible **azure.ai.** providers, including the project and hosted-agent providers used by this lab.
 
 ## Review the agent code
 
-Open `src/agent/app.py`. The hosted agent imports the Foundry client and the Responses host:
+Open **src/agent/app.py**. The hosted agent imports the Foundry client and the Responses host:
 
 ```python
 from agent_framework import Agent
@@ -827,11 +828,11 @@ from agent_framework_foundry_hosting import ResponsesHostServer
 from azure.identity import DefaultAzureCredential
 ```
 
-- **Connects** through `FoundryChatClient` from `agent_framework.foundry`.
-- **Hosts** the agent with the Responses adapter, `ResponsesHostServer`.
+- **Connects** through **FoundryChatClient** from **agent_framework.foundry**.
+- **Hosts** the agent with the Responses adapter, **ResponsesHostServer**.
 - **Authenticates** without hardcoded secrets.
 
-The `Agent` uses the Caldova sentiment instructions and disables model-side response storage:
+The **Agent** uses the Caldova sentiment instructions and disables model-side response storage:
 
 ```python
 agent = Agent(
@@ -848,7 +849,7 @@ agent = Agent(
 
 - **Applies** the Caldova sentiment-analysis instructions.
 - **Relies** on platform-managed conversation history.
-- **Prevents** duplicate response storage in the model call with `store: False`.
+- **Prevents** duplicate response storage in the model call with **store: False**.
 
 The entry point starts the Responses host:
 
@@ -861,7 +862,7 @@ if __name__ == "__main__":
 
 ### The deployment definition: azure.yaml
 
-The root `azure.yaml` is the source of truth for the Foundry project, model deployment, and hosted agent. The `microsoft.foundry` provider provisions the project without the legacy capability-host infrastructure pattern. The agent uses direct source-code deployment with the managed Python 3.13 runtime:
+The root **azure.yaml** is the source of truth for the Foundry project, model deployment, and hosted agent. The **microsoft.foundry** provider provisions the project without the legacy capability-host infrastructure pattern. The agent uses direct source-code deployment with the managed Python 3.13 runtime:
 
 ```yaml
 services:
@@ -906,10 +907,10 @@ infra:
 
 > The managed-lab lifecycle installs these dependencies before the session starts.
 
-Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be `.venv`. 
+Confirm that VS Code is using the workspace virtual environment. The Python interpreter shown in the status bar should be **.venv**. 
 !IMAGE[status_bar.png](instructions356855/status_bar.png)
 
-If it is not, run **Python: Select Interpreter** from the Command Palette and choose `.venv\Scripts\python.exe`.
+If it is not, run **Python: Select Interpreter** from the Command Palette and choose **.venv\Scripts\python.exe**.
 
 Then verify the environment:
 
@@ -930,7 +931,7 @@ Before creating a cloud version, run the same Python entry point locally and che
 2. Select **Debug Agent with Agent Inspector**.
 
     !IMAGE[Debug with Agent Inspector](instructions356855/debug_with_agent_inspector.png)
-3. Press **F5**. The configured tasks start `src/agent/app.py`, wait until its server is listening on port `8088`, and open the Foundry Toolkit Agent Inspector inside VS Code.
+3. Press **F5**. The configured tasks start **src/agent/app.py**, wait until its server is listening on port **8088**, and open the Foundry Toolkit Agent Inspector inside VS Code.
 4. Send this feedback:
 
    ```text
@@ -948,7 +949,7 @@ Inspect the **Overview** tab in the Agent Inspector to see a summary of the agen
 
 !IMAGE[inspector_logs.png](instructions356855/inspector_logs.png)
 
-The local entry point reads `PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` from the managed `.env` used in earlier parts. If the Inspector cannot connect, confirm the debug terminal reaches `AgentServerHost started` and update Foundry Toolkit before changing the agent code.
+The local entry point reads **PROJECT_ENDPOINT** and **MODEL_DEPLOYMENT_NAME** from the managed **.env** used in earlier parts. If the Inspector cannot connect, confirm the debug terminal reaches **AgentServerHost started** and update Foundry Toolkit before changing the agent code.
 
 ## Local checkpoint
 
@@ -973,7 +974,7 @@ For the first deployment in an environment, provision the project and deploy the
 azd up
 ```
 
-Later code-only changes use `azd deploy` instead. Each successful deployment creates an immutable agent version.
+Later code-only changes use **azd deploy** instead. Each successful deployment creates an immutable agent version.
 
 Check that the deployed version is active:
 
@@ -987,11 +988,11 @@ Send one deployed smoke test:
 azd ai agent invoke caldova-consumer-sentiment-agent "The delivery was late, but support kept me informed."
 ```
 
-The response should contain valid governed JSON. The `show` command also returns the Responses endpoint and a Foundry Playground URL for visual testing.
+The response should contain valid governed JSON. The **show** command also returns the Responses endpoint and a Foundry Playground URL for visual testing.
 
 ## Cloud checkpoint
 
-The agent status is `active`, and the remote invocation returns a JSON object without storing credentials in source code.
+The agent status is **active**, and the remote invocation returns a JSON object without storing credentials in source code.
 
 ======
 
@@ -1009,19 +1010,19 @@ azd ai agent eval generate `
     --max-samples 15 `
     --out-file eval.yaml
 ```
-When asked, confirm `caldova-consumer-sentiment-agent` as the name of the evaluation suite. DO not include traces for evaluation generation.
+When asked, confirm **caldova-consumer-sentiment-agent** as the name of the evaluation suite. DO not include traces for evaluation generation.
 
-Inspect the generated dataset - `src/agent/datasets/caldova-consumer-sentiment-agent/caldova-consumer-sentiment-agent_dg.jsonl`, the evaluator definitions and rubric - `src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json`, and the evaluation configuration - `src/agent/eval.yaml` - before running them. Confirm that the cases cover valid JSON, ordinary and mixed sentiment, regulated routing, and the prohibition on medical advice.
+Inspect the generated dataset - **src/agent/datasets/caldova-consumer-sentiment-agent/caldova-consumer-sentiment-agent_dg.jsonl**, the evaluator definitions and rubric - **src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json**, and the evaluation configuration - **src/agent/eval.yaml** - before running them. Confirm that the cases cover valid JSON, ordinary and mixed sentiment, regulated routing, and the prohibition on medical advice.
 
 ```powershell
 azd ai agent eval run --config eval.yaml
 ```
 
-Before changing the agent because of a low score, open a failed row and compare the rubric explanation with `sample.output_text`. If `sample.output_text` is valid JSON but the explanation describes a list, annotations, or an output-item wrapper, the preview evaluator graded Responses transport metadata instead of the assistant text. Refine the generated rubric to grade `sample.output_text`, upload it with `azd ai agent eval update --config eval.yaml --evaluator-only`, then rerun the evaluation.
+Before changing the agent because of a low score, open a failed row and compare the rubric explanation with **sample.output_text**. If **sample.output_text** is valid JSON but the explanation describes a list, annotations, or an output-item wrapper, the preview evaluator graded Responses transport metadata instead of the assistant text. Refine the generated rubric to grade **sample.output_text**, upload it with **azd ai agent eval update --config eval.yaml --evaluator-only**, then rerun the evaluation.
 
 If the mismatch persists or valid assistant text is marked not applicable, report the schema criterion separately as a preview evaluator limitation instead of treating the aggregate pass rate as the agent's structured-output quality.
 
-Compare this exploratory suite with `src/agent/evals/caldova-golden.jsonl`. Generated cases broaden coverage; the human-reviewed golden cases protect regulated-routing behavior when the prompt, model, or tools change.
+Compare this exploratory suite with **src/agent/evals/caldova-golden.jsonl**. Generated cases broaden coverage; the human-reviewed golden cases protect regulated-routing behavior when the prompt, model, or tools change.
 
 ## CLI command reference
 
@@ -1038,7 +1039,7 @@ Compare this exploratory suite with `src/agent/evals/caldova-golden.jsonl`. Gene
 
 ## Stretch goal: add a topic or review category
 
-Want to extend the agent before wrapping up? Add `COMPETITOR_MENTION` to the agent instructions in `src/agent/app.py`, decide how the routing layer should handle it, then redeploy:
+Want to extend the agent before wrapping up? Add **COMPETITOR_MENTION** to the agent instructions in **src/agent/app.py**, decide how the routing layer should handle it, then redeploy:
 
 ```powershell
 azd deploy
@@ -1049,16 +1050,16 @@ Test the new value in the hosted-agent playground. This reinforces the direct ed
 ## What you learned
 
 - ✅ How hosted agents run your code as a managed service on Foundry
-- ✅ How `ResponsesHostServer` exposes the current Responses protocol
-- ✅ Why platform-managed history pairs with `store: False`
+- ✅ How **ResponsesHostServer** exposes the current Responses protocol
+- ✅ Why platform-managed history pairs with **store: False**
 - ✅ How to test a hosted agent locally with the Agent Inspector (F5) before deploying
-- ✅ How to provision and deploy with `azure.yaml` and `azd up`, and validate in Foundry Toolkit
+- ✅ How to provision and deploy with **azure.yaml** and **azd up**, and validate in Foundry Toolkit
 - ✅ How to invoke, monitor, and manage hosted agents
 - ✅ How generated evaluations complement curated regression cases
 
 ## Key takeaway
 
-> A Foundry hosted agent can be deployed directly from Python source. The repository defines behavior in `app.py`, hosting in `azure.yaml`, and the first deployment through `azd up` -- and the entire workflow can also run inside VS Code with the Foundry Toolkit.
+> A Foundry hosted agent can be deployed directly from Python source. The repository defines behavior in **app.py**, hosting in **azure.yaml**, and the first deployment through **azd up** -- and the entire workflow can also run inside VS Code with the Foundry Toolkit.
 
 ======
 
@@ -1091,8 +1092,8 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 | | |
 |---|---|
 | **What you did** | Verified the pre-provisioned Foundry project and validated the local environment with the automated validation script |
-| **Key skill** | Environment configuration, `.env` validation, and readiness checks |
-| **Outcome** | A confirmed Foundry project and a validated local `.env` configuration |
+| **Key skill** | Environment configuration, **.env** validation, and readiness checks |
+| **Outcome** | A confirmed Foundry project and a validated local **.env** configuration |
 
 ### Lab 3: Connect and send your first inference
 
@@ -1100,9 +1101,9 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 |---|---|
 | **What you did** | Reviewed Python code to authenticate with **DefaultAzureCredential** and send a Responses API request |
 | **Key skill** | Using the Azure AI Projects SDK for model inference -- instructions, input, status, and token usage |
-| **Outcome** | A working script (`src/01_first_inference.py`) that sends prompts and receives model responses |
+| **Outcome** | A working script (**src/01_first_inference.py**) that sends prompts and receives model responses |
 
-**Core concept:** Responses API calls separate durable `instructions` from the current `input`, and return convenient output text plus status and usage metadata.
+**Core concept:** Responses API calls separate durable **instructions** from the current **input**, and return convenient output text plus status and usage metadata.
 
 ### Lab 4: Build a consumer sentiment analysis application for Caldova
 
@@ -1110,7 +1111,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 |---|---|
 | **What you did** | Designed a system prompt for structured JSON sentiment analysis, built a governed routing layer with confidence thresholds, processed batches of feedback |
 | **Key skill** | Prompt engineering for structured output, building decision logic around model responses |
-| **Outcome** | A complete sentiment analysis app (`src/02_sentiment_analysis.py`) that classifies Caldova feedback and independently flags regulated review categories |
+| **Outcome** | A complete sentiment analysis app (**src/02_sentiment_analysis.py**) that classifies Caldova feedback and independently flags regulated review categories |
 
 **Core concept:** The model provides sentiment and category signals; your code makes the routing decisions -- and never determines causality, seriousness, or medical advice.
 
@@ -1120,7 +1121,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 |---|---|
 | **What you did** | Ran the same Caldova feedback through gpt-5.4-mini and gpt-5.4, compared quality, latency, and cost |
 | **Key skill** | Multi-model evaluation, cost-performance trade-off analysis, hybrid escalation patterns |
-| **Outcome** | A comparison script (`src/03_model_comparison.py`) with side-by-side results and an optional hybrid routing mode |
+| **Outcome** | A comparison script (**src/03_model_comparison.py**) with side-by-side results and an optional hybrid routing mode |
 
 **Core concept:** Cheaper models often perform well enough for most inputs. Reserve expensive models for low-confidence cases.
 
@@ -1151,8 +1152,8 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 **Agent development & deployment**
 - Using the Microsoft Agent Framework (Agent, FoundryChatClient)
 - Local testing with the Foundry Toolkit Agent Inspector before cloud deployment
-- Deploying Python code to Foundry Agent Service with `azure.yaml` and `azd up`
-- Invoking and monitoring agents via the `azd ai agent` CLI
+- Deploying Python code to Foundry Agent Service with **azure.yaml** and **azd up**
+- Invoking and monitoring agents via the **azd ai agent** CLI
 - Testing agents in the Foundry Toolkit hosted agents playground
 - Generating structured evaluations and comparing synthetic coverage with curated regression cases
 
@@ -1177,7 +1178,7 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 1. **Prompt engineering drives behavior.** A well-structured system prompt turns a general-purpose model into a specialized analyst.
 2. **Business logic wraps model output.** Models provide probabilistic output; your code makes deterministic routing decisions.
 3. **Start cheap, escalate smart.** Use a fast, cheap model for most requests and route only low-confidence cases to a more capable model.
-4. **Validate before deployment.** Test with the Agent Inspector, then validate again in the hosted-agent playground after `azd deploy`.
+4. **Validate before deployment.** Test with the Agent Inspector, then validate again in the hosted-agent playground after **azd deploy**.
 5. **Keep regulated routing independent.** Sentiment and regulated review categories are separate signals -- never route on sentiment alone.
 6. **Use complementary evaluation sets.** Generated suites discover cases; curated golden sets compare agent versions against fixed expectations.
 
@@ -1186,8 +1187,8 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 - **Add more topics or review categories** -- for example, route competitor mentions to a competitive-intelligence queue.
 - **Add tools to the agent** -- look up a consumer's case history or notify Caldova's pharmacovigilance team via a webhook when a POTENTIAL_ADVERSE_EVENT is detected.
 - **Build a multi-agent workflow** -- chain the sentiment agent with a response-drafting agent.
-- **Connect to a frontend** -- the hosted agent exposes an OpenAI-compatible REST API at `/responses`.
-- **Set up CI/CD** -- use GitHub Actions with `azd` to redeploy on every push that changes `src/agent/**`.
+- **Connect to a frontend** -- the hosted agent exposes an OpenAI-compatible REST API at **/responses**.
+- **Set up CI/CD** -- use GitHub Actions with **azd** to redeploy on every push that changes **src/agent/**.
 - **Add an evaluation quality gate** -- run the curated golden suite before promoting a new agent version.
 
 ## Thank you
@@ -1201,7 +1202,7 @@ If you encountered any issues during this lab or would like to try it self-paced
 Please create a issue on the repo
 
 Happy building!
-| `azure.yaml` | Direct-code hosted-agent configuration |
+
 
 ## Continue learning
 
