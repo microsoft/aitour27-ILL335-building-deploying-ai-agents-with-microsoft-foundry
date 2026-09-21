@@ -104,6 +104,9 @@ resource modelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-
     }
     raiPolicyName: 'Microsoft.DefaultV2'
   }
+  dependsOn: [
+    project
+  ]
 }
 
 // ---------------------------------------------------------------------------

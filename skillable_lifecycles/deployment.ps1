@@ -72,6 +72,32 @@ try {
         throw "$label did not return a result after $maxAttempts attempts."
     }
 
+    function Invoke-AzdUpWithRetry([int]$maxAttempts = 3, [int]$delaySec = 30) {
+        for ($i = 1; $i -le $maxAttempts; $i++) {
+            Write-Host ">>> azd up (attempt $i/$maxAttempts)"
+            $prev = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            try {
+                $output = & azd up -e $envName --no-prompt 2>&1
+                $exitCode = $LASTEXITCODE
+                $output | ForEach-Object { Write-Host $_ }
+            } finally {
+                $ErrorActionPreference = $prev
+            }
+
+            if ($exitCode -eq 0) { return }
+
+            $outputText = $output | Out-String
+            $isTransientConflict = $outputText -match "RequestConflict|Another operation is in progress"
+            if (-not $isTransientConflict -or $i -eq $maxAttempts) {
+                throw "azd up failed (exit $exitCode)."
+            }
+
+            Write-Host "Azure is still completing an operation on the Foundry account. Retrying in ${delaySec}s..."
+            Start-Sleep -Seconds $delaySec
+        }
+    }
+
     # === Authentication ===
     Write-Host ">>> Connect-AzAccount"
     $securePwd = ConvertTo-SecureString $appSecret -AsPlainText -Force
@@ -149,9 +175,7 @@ try {
     Invoke-External "configure azd tenant" {
         azd env set AZURE_TENANT_ID $tenantId -e $envName
     }
-    Invoke-External "azd up" {
-        azd up -e $envName --no-prompt
-    }
+    Invoke-AzdUpWithRetry
 
     # === Post-deploy role assignments ===
     $foundryUserRoleId           = "53ca6127-db72-4b80-b1b0-d745d6d5456d"  # Foundry User
