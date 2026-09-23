@@ -1223,6 +1223,9 @@ If you encountered any issues during this lab or would like to try it self-paced
 
 Please create a issue on the repo
 
+Continue the discussion in the Microsoft Foundry Community 
+!IMAGE[foundrydiscord.png](instructions356855/foundrydiscord.png)
+
 Happy building!
 
 
