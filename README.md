@@ -52,6 +52,7 @@ Pick your next step based on your learning style:
 
 | Resource | What you'll get |
 |----------|-----------------|
+| **[Session Recording](https://aka.ms/aitour27/ILL335/youtube)** | A recording of session ILL335 by the session creator |
 | **[Microsoft Ignite ILL335 Presentation](./delivery-resources/ILL335-Attendee-Walkthrough-FY27.pptx)** | Lab Presentation |
 | **[Microsoft Learn](https://learn.microsoft.com)** | Official documentation and guided learning paths on these topics |
 | **[AI Tour 2027 Resource Center](https://aka.ms/aitour27-resource-center)** | Additional session repos and materials from AI Tour 2027 |
