@@ -373,6 +373,8 @@ Sentiment classification and regulated routing are **independent** of each other
 
 !IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture.png)
 
+The model runs in Foundry; JSON parsing and routing run in the local Python application. A content filter block produces **CONTENT_SAFETY** with confidence **0.0** and is escalated. Invalid JSON instead produces **NONE** with confidence **0.0** and is routed to **REVIEW_LOW_CONFIDENCE**. The script returns and prints action labels; it does not implement review queues or a dashboard.
+
 This pipeline uses **prompt-based JSON**: the system prompt instructs the model to respond only with valid JSON. For even stricter guarantees, OpenAI models support [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), a **response_format** parameter that constrains the model to conform to a JSON schema. This lab uses the prompt-based approach for simplicity and portability across model providers.
 
 ## Step 1: Review the system prompt
@@ -459,7 +461,7 @@ Key design decisions:
 | JSON output format | Machine-parseable, no regex needed |
 | Structured system prompt | Reliable, consistent categorization |
 | try/except around inference | Catches Azure content safety filter blocks gracefully |
-| try/except around json.loads() | Falls back to a default NONE result if the model returns malformed output |
+| try/except around json.loads() | Falls back to NONE with confidence 0.0, resulting in REVIEW_LOW_CONFIDENCE, if the model returns malformed output |
 
 ### 2b. Apply governed routing logic
 
