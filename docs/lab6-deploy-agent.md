@@ -248,7 +248,25 @@ azd ai agent eval run --config eval.yaml
 
 Review the per-evaluator scores and inspect at least one failed or borderline case. A low score is useful evidence: it identifies where the instructions, dataset, or evaluator rubric need refinement.
 
-Because this workflow is in preview, verify what the evaluator graded before changing the agent. For JSON-format criteria, compare the rubric explanation with `sample.output_text`. If that field contains one valid JSON object but the explanation describes a list, annotations, or output-item wrapper, the evaluator graded the Responses transport envelope rather than the assistant text. Treat that score as an evaluator-input issue and refine the generated rubric to use `sample.output_text`. Upload only the corrected evaluator and rerun the same recipe:
+> **Tip:** The evaluation process might take several minutes to complete and the polling updates might time out. If that's the case, you can rerun the evaluation command `azd ai agent eval run` to continue monitoring its progress.
+
+To inspect evaluation results, navigate to **Evaluations** under **My Resources** in the Foundry Toolkit UI. Click on the evaluation run, to review its details and any failed cases.
+
+![Evaluation Results](./images/eval_results.png)
+
+Because this workflow is in preview, verify what the evaluator graded before changing the agent. Open the failed row and read both `sample.output_text` and the evaluator's explanation. Valid JSON can still fail when it has a missing field, an unsupported label, or a value of the wrong type. In that case, the explanation will refer to the JSON fields and you should fix the agent instructions. However, if the explanation refers to a list, annotations, `sample.output`, or an output-item wrapper that does not appear in `sample.output_text`, the preview evaluator inspected Responses transport metadata instead of the assistant text.
+
+To correct that evaluator-input issue:
+
+1. Open `src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json`.
+2. Find the rubric dimension that produced the failed score, usually the JSON or schema-compliance dimension.
+3. Add this instruction to that dimension's rubric text:
+
+  ```text
+  Evaluate only the literal assistant text in sample.output_text. Ignore sample.output, sample.output_items, annotations, and all other Responses transport metadata. For schema compliance, pass when sample.output_text contains exactly one valid JSON object with all required fields, allowed labels, and value types, and no text outside the object.
+  ```
+
+4. Save the file, upload only the corrected evaluator, and rerun the same evaluation:
 
 ```powershell
 azd ai agent eval update --config eval.yaml --evaluator-only
@@ -257,7 +275,7 @@ azd ai agent eval run --config eval.yaml
 
 Classification, routing, and summary scores remain useful signals when their explanations cite the actual assistant text.
 
-If the refined evaluator still cites transport wrappers or marks valid `sample.output_text` as not applicable, record the schema result separately as a preview evaluator limitation. Do not use the aggregate pass rate alone to represent the agent's structured-output quality.
+If the new explanation still discusses transport wrappers, or marks valid and schema-compliant `sample.output_text` as not applicable, treat the schema score as a preview evaluator limitation. Report that criterion separately instead of changing the agent or relying on the aggregate pass rate.
 
 ### Compare generated and curated coverage
 

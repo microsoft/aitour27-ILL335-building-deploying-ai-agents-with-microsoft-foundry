@@ -59,7 +59,7 @@ In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog*
     
 > **Tip:** You can close the GitHub Copilot Chat window on the right side of the editor for now to have more space to explore the model catalog.
 
-Browse the available models. Use the filters in the left-side toolbar of the catalog UI to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by feature (Web Search, Image Attachment, etc.).
+Browse the available models. Use the filters on the top right corner of the catalog UI to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by feature (Web Search, Image Attachment, etc.).
 
 !IMAGE[filters.png](instructions356855/filters.png)
 
@@ -1019,10 +1019,32 @@ Inspect the generated dataset - **src/agent/datasets/caldova-consumer-sentiment-
 ```powershell
 azd ai agent eval run --config eval.yaml
 ```
+> **Tip:** The evaluation process might take several minutes to complete and the polling updates might time out. If that's the case, you can rerun the evaluation command `azd ai agent eval run` to continue monitoring its progress.
 
-Before changing the agent because of a low score, open a failed row and compare the rubric explanation with **sample.output_text**. If **sample.output_text** is valid JSON but the explanation describes a list, annotations, or an output-item wrapper, the preview evaluator graded Responses transport metadata instead of the assistant text. Refine the generated rubric to grade **sample.output_text**, upload it with **azd ai agent eval update --config eval.yaml --evaluator-only**, then rerun the evaluation.
+To inspect evaluation results, navigate to **Evaluations** under **My Resources** in the Foundry Toolkit UI. Click on the evaluation run, to review its details and any failed cases.
 
-If the mismatch persists or valid assistant text is marked not applicable, report the schema criterion separately as a preview evaluator limitation instead of treating the aggregate pass rate as the agent's structured-output quality.
+!IMAGE[eval_results.png](instructions356855/eval_results.png)
+
+Before changing the agent because of a low score, open the failed row and read both **sample.output_text** and the evaluator's explanation. Valid JSON can still fail when it has a missing field, an unsupported label, or a value of the wrong type. In that case, the explanation will refer to the JSON fields and you should fix the agent instructions. However, if the explanation refers to a list, annotations, **sample.output**, or an output-item wrapper that does not appear in **sample.output_text**, the preview evaluator inspected Responses transport metadata instead of the assistant text.
+
+To correct that evaluator-input issue:
+
+1. Open **src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json**.
+2. Find the rubric dimension that produced the failed score, usually the JSON or schema-compliance dimension.
+3. Add this instruction to that dimension's rubric text:
+
+    ```text
+    Evaluate only the literal assistant text in sample.output_text. Ignore sample.output, sample.output_items, annotations, and all other Responses transport metadata. For schema compliance, pass when sample.output_text contains exactly one valid JSON object with all required fields, allowed labels, and value types, and no text outside the object.
+    ```
+
+4. Save the file, upload only the corrected evaluator, and rerun the same evaluation:
+
+    ```powershell
+    azd ai agent eval update --config eval.yaml --evaluator-only
+    azd ai agent eval run --config eval.yaml
+    ```
+
+If the new explanation still discusses transport wrappers, or marks valid and schema-compliant **sample.output_text** as not applicable, treat the schema score as a preview evaluator limitation. Report that criterion separately instead of changing the agent or relying on the aggregate pass rate.
 
 Compare this exploratory suite with **src/agent/evals/caldova-golden.jsonl**. Generated cases broaden coverage; the human-reviewed golden cases protect regulated-routing behavior when the prompt, model, or tools change.
 
@@ -1202,6 +1224,9 @@ If you encountered any issues during this lab or would like to try it self-paced
 !IMAGE[Report Issues](instructions356855/issues.png)
 
 Please create a issue on the repo
+
+Continue the discussion in the Microsoft Foundry Community 
+!IMAGE[foundrydiscord.png](instructions356855/foundrydiscord.png)
 
 Happy building!
 
