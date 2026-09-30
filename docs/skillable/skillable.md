@@ -1219,11 +1219,11 @@ Across the labs, you -- as an AI developer on Caldova's commercial digital and c
 
 You started with a model in a catalog and finished with a production-ready hosted agent on Microsoft Foundry. The patterns you learned -- prompt engineering, structured output, confidence-based routing, and direct-code deployment -- apply to any AI application, not just consumer sentiment analysis.
 
-If you encountered any issues during this lab or would like to try it self-paced, see the repository issues page.
+If you encountered any issues during this lab or would like to try it self-paced, see the repository page. Please log any issue experienced on the repo.
 
 !IMAGE[Report Issues](instructions356855/issues.png)
 
-Please create a issue on the repo
+
 
 Continue the discussion in the Microsoft Foundry Community 
 !IMAGE[foundrydiscord.png](instructions356855/foundrydiscord.png)
