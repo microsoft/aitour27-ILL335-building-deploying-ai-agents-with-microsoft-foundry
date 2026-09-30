@@ -10,7 +10,7 @@ The current lab is built for the AI Tour FY27 Skillable environment. Attendee pr
 
 | Item | Link | Notes |
 |:--|:--|:--|
-| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| Delivery deck | coming soon | Required URL |
 
 ---
 
