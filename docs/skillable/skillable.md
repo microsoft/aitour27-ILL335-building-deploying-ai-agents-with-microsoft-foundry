@@ -371,7 +371,7 @@ Sentiment classification and regulated routing are **independent** of each other
 
 ## Architecture
 
-!IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture.png)
+!IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture_agents.png)
 
 The model runs in Foundry; JSON parsing and routing run in the local Python application. A content filter block produces **CONTENT_SAFETY** with confidence **0.0** and is escalated. Invalid JSON instead produces **NONE** with confidence **0.0** and is routed to **REVIEW_LOW_CONFIDENCE**. The script returns and prints action labels; it does not implement review queues or a dashboard.
 
