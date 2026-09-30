@@ -4,7 +4,7 @@
 
 This AI Tour lab is **Building & Deploying AI Agents with Microsoft Foundry**.
 
-To begin, log in to the virtual machine with: +++@lab.VirtualMachine(Win11-Pro-Base).Password+++
+To begin, log in to the virtual machine with: +++@lab.VirtualMachine(ILL335:Win11).Password+++
 
 # Part 1: Discover Foundry-hosted models
 
