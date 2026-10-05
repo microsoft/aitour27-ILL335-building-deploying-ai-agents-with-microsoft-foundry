@@ -69,10 +69,17 @@ extensions = {item["id"]: item["installedVersion"] for item in json.load(sys.std
 required = ("microsoft.foundry", "azure.ai.agents", "azure.ai.projects")
 missing = [extension_id for extension_id in required if not extensions.get(extension_id)]
 if missing:
-    raise SystemExit(f"Foundry extension installation incomplete: {chr(44).join(missing)}")
+    raise SystemExit(f"Foundry extension installation incomplete: {", ".join(missing)}")
 '
 
-python3 -m venv .venv
+if [[ -x .venv/bin/python ]]; then
+    printf 'Reusing existing virtual environment at .venv\n'
+else
+    if [[ -e .venv ]]; then
+        rm -rf .venv
+    fi
+    python3 -m venv .venv
+fi
 .venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install --requirement requirements.txt
 .venv/bin/python -m pip install --requirement src/agent/requirements.txt

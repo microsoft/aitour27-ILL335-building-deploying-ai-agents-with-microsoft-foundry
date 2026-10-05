@@ -3,9 +3,11 @@
   "image": "mcr.microsoft.com/devcontainers/python:3-3.13-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/azure-cli:1": {
-      "version": "latest"
+      "version": "2.61.0"
     },
-    "ghcr.io/azure/azure-dev/azd:latest": {}
+    "ghcr.io/azure/azure-dev/azd:1": {
+      "version": "1.10.2"
+    }
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
