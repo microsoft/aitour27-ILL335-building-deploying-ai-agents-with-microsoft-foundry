@@ -37,15 +37,23 @@ if (( ${#missing_commands[@]} > 0 )); then
 fi
 
 python3 - <<'PY'
+import re
+import subprocess
 import sys
 
 if sys.version_info < (3, 13):
     raise SystemExit(f"Python 3.13+ is required; found {sys.version.split()[0]}")
+
+version_output = subprocess.run(
+    ["azd", "version"], check=True, capture_output=True, text=True
+).stdout
+match = re.search(r"\d+\.\d+\.\d+", version_output)
+if match is None or tuple(map(int, match.group().split("."))) < (1, 27, 1):
+    raise SystemExit(f"Azure Developer CLI 1.27.1+ is required; found {version_output.strip()}")
 PY
 
-if ! /usr/bin/python3 -m pip --version >/dev/null 2>&1; then
-    sudo -n apt-get update
-    sudo -n apt-get install -y python3-pip
+if ! python3 -m pip --version >/dev/null 2>&1; then
+    python3 -m ensurepip --upgrade
 fi
 
 foundry_installed_version="$(azd ext list -o json | python3 -c 'import json,sys; print(next((item["installedVersion"] for item in json.load(sys.stdin) if item["id"] == "microsoft.foundry"), ""))')"
@@ -67,6 +75,8 @@ if missing:
 python3 -m venv .venv
 .venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install --requirement requirements.txt
+.venv/bin/python -m pip install --requirement src/agent/requirements.txt
+.venv/bin/python -m pip check
 
 printf '\nILL335 development environment ready.\n'
 printf 'Authenticate before cloud work: az login --use-device-code && azd auth login\n'
