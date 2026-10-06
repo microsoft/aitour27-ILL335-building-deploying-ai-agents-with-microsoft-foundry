@@ -44,7 +44,8 @@ The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already insta
     If prompted for a Temporary Access Pass (TAP): +++@lab.CloudPortalCredential(User1).AccessToken+++
 
     If prompted for a Password: +++@lab.CloudPortalCredential(User1).Password+++
-5. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
+5. When asked if you wish to **Sign in to all apps and websites on this device**, select **No, this app only**.
+6. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
 
 > **Note:** If no Foundry Projects is retrieved and listed for selection, it probably means that the resources provisioning for the lab hasn't been completed yet. Move to step 3 and continue exploring the model catalog while waiting for the provisioning to complete. then come back to this step in a few minutes and retry. 
 
