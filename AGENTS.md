@@ -21,7 +21,7 @@ This file contains instructions and guidelines for AI agents working on this rep
 This repository is an AI Tour session content repository and should:
 - Provide clear, actionable content for session attendees
 - Support self-guided learning for remote/at-home learners
-- Follow the structure established by GUIDANCE.md
+- Keep navigation and delivery guidance aligned with [README.md](README.md) and the [lab guides](docs/README.md).
 
 ### What NOT to modify without permission:
 - License files (`LICENSE`, `LICENSE-DOCS`, `CODE_OF_CONDUCT.md`)
@@ -41,7 +41,7 @@ This repository supports two separate delivery scenarios. Identify the target sc
 | Scenario | Audience | Setup authority | Learner instructions |
 |----------|----------|-----------------|----------------------|
 | Managed Skillable lab | Classroom attendees using a provisioned lab VM and subscription | `skillable_lifecycles/deployment.ps1` and `skillable_lifecycles/azddeloy.ps1` | `docs/skillable/skillable.md` |
-| Bring your own device (BYOD) | Remote or self-guided learners using their own workstation and Azure subscription | `setup/SETUP.md`, `scripts/setup.ps1`, `scripts/setup.sh`, and the post-provision scripts | Individual guides under `docs/` |
+| Bring your own device (BYOD) | Remote or self-guided learners using their own workstation or Codespaces and Azure subscription | `setup/SETUP.md`, `scripts/setup.ps1`, `scripts/setup.sh`, and the post-provision scripts; `.devcontainer/` prepares only the workspace | Individual guides under `docs/` |
 
 #### Managed Skillable labs
 
@@ -58,6 +58,17 @@ This repository supports two separate delivery scenarios. Identify the target sc
 - Do not include Skillable template tokens, fixed `LabUser` paths, classroom service-principal flows, or managed-VM assumptions in BYOD instructions.
 - When shared prerequisites, provider versions, model deployments, or `.env.sample` keys change, update both PowerShell and Bash setup paths and the affected individual lab guides.
 
+#### BYOD dev containers and Codespaces
+
+- Treat [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) and its [workspace hook](.devcontainer/post-create.sh) as optional BYOD workspace preparation, not Azure provisioning or managed Skillable automation.
+- Preserve Python 3.13, the stable Azure CLI/azd toolchain, and explicit installation of `microsoft.foundry`, `azure.ai.agents`, and `azure.ai.projects`. Check that referenced image and Feature tags exist; Feature versions and installed CLI versions are separate.
+- Keep dependency installation in `updateContentCommand` with `waitFor: updateContentCommand` so Codespaces prebuilds capture it. Do not move it to `postCreateCommand`, `postStartCommand`, or `postAttachCommand`.
+- Docker layer caching and GitHub-hosted prebuilds are separate. Hosted prebuilds require repository-administrator configuration; do not claim they are enabled merely because the configuration is committed. Follow the [prebuild setup instructions](setup/SETUP.md#enable-cached-codespaces-prebuilds-repository-administrators); do not add workflows without approval.
+- Keep lifecycle hooks non-interactive and credential-free. Do not authenticate, provision/deploy resources, copy host Azure credentials, or create/read `.env` during workspace preparation or prebuilds.
+- Install only the root `requirements.txt` in the hook. The [Lab 6 dependencies](src/agent/requirements.txt) have different SDK pins and are installed separately at the [Lab 6 dependency step](docs/lab6-deploy-agent.md#install-agent-dependencies). Rerunning the hook restores the main-lab pins.
+- Reuse a compatible `.venv`; report incompatible environments without deleting them. Preserve LF line endings for container shell scripts and propagate installation errors instead of reporting partial setup as success.
+- When shared workspace prerequisites change, update the container configuration and [BYOD setup guide](setup/SETUP.md) alongside the affected setup paths. Container-only changes do not require altering Skillable lifecycle scripts.
+
 Core lab code is shared by both scenarios. Keep expected output and learning outcomes aligned between the individual lab guide and the corresponding section of `docs/skillable/skillable.md`, while allowing setup steps to remain scenario-specific.
 
 ### Microsoft Foundry Hosted Agents
@@ -70,6 +81,7 @@ Use these current Microsoft-owned sources as the deployment authority:
 - [`microsoft-foundry/foundry-samples`](https://github.com/microsoft-foundry/foundry-samples/tree/main/samples/python/hosted-agents)
 
 - Require Azure Developer CLI (`azd`) 1.27.1 or later.
+- Treat `azure.yaml` `requiredVersions` as the declared compatibility floors, not a guarantee that every newer extension supports the minimum CLI. Respect the selected extension's own azd requirement. Reconcile version guidance across BYOD setup, Skillable automation/instructions, and `azure.yaml` together; do not raise shared floors based only on the version installed during a local test.
 - Install the provider bundle with `azd ext install microsoft.foundry`.
 - Keep the compatible provider floors in `azure.yaml`: `azure.ai.agents` 1.0.0-beta.8 or later and `azure.ai.projects` 1.0.0-beta.4 or later. The `microsoft.foundry` meta-extension installs these `azure.ai.*` providers; it does not replace their `requiredVersions` entries.
 - Use the unified root `azure.yaml` with separate `azure.ai.project` and `azure.ai.agent` services connected through `uses`.
@@ -77,10 +89,21 @@ Use these current Microsoft-owned sources as the deployment authority:
 - Use Python 3.13 direct-code deployment through `codeConfiguration` and Responses protocol 2.0.0.
 - Use `azd up` for the first provision-and-deploy operation. Use `azd deploy` only for later code-only agent updates.
 - Do not add deprecated standalone `agent.yaml` or `agent.manifest.yaml` files.
-- This lab uses direct-code remote build, so do not add a Dockerfile, Azure Container Registry, or capability-host resources. Those belong only to explicitly selected container or Standard Agent Setup scenarios.
+- Hosted-agent deployment uses direct-code remote build, so do not add an agent Dockerfile, Azure Container Registry, or capability-host resources. Those belong only to explicitly selected container deployment or Standard Agent Setup scenarios. The BYOD development container does not change this deployment architecture.
 - Treat older `Azure-Samples/azd-ai-starter-*` repositories and capability-host templates as legacy references.
 - Confirm Azure CLI and `azd` are authenticated to the same tenant and subscription before cloud operations.
 - Never print or commit `.env`, access tokens, credentials, or connection strings.
+
+### Validation
+
+See the [automated testing guide](src/tests/README.md) and [manual lab checkpoints](src/tests/TESTING.md).
+
+- Run `python src/tests/validate_lab.py` for relevant repository/setup changes and the smallest unit-test selection covering the change. Do not use `--live` or `--agent` merely to validate workspace configuration.
+- For dev-container changes, run `python -m unittest discover -s src/tests -p test_devcontainer.py -v` and `bash -n .devcontainer/post-create.sh`. On Windows, set `BASH_EXECUTABLE` to Git for Windows Bash if the default Bash points to unavailable WSL.
+- When Docker is available, validate the real build, `updateContentCommand`, `python -m pip check`, and offline lab checks inside the container. Verify cached rebuilds and that normal restarts do not reinstall dependencies. Mocked hook tests alone do not establish that a container builds or hosted Codespaces prebuilds work.
+- Syntax-check PowerShell and Bash setup scripts when changed. Verify learner commands, expected output, and navigation when documentation changes.
+- Distinguish passed checks, expected skips, unavailable validation, and pre-existing failures. Reproduce suspected baseline failures before attributing them to a change; do not fix unrelated lab behavior to make container validation green.
+- Do not modify host credentials or environments during container validation. Clean up only the temporary containers and files created for the check; do not prune shared Docker resources.
 
 ### Issue Management
 When a user reports a problem, asks a question that should be tracked, or wants to file an issue:
@@ -91,7 +114,7 @@ When a user reports a problem, asks a question that should be tracked, or wants 
 4. **Create the issue** — Use `gh issue create --template <template-file>` if a template matches, or `gh issue create` for a plain issue.
 5. **Apply labels** — Check `gh label list` to see what labels exist in the repo. Apply relevant labels based on the issue type. Don't try to apply labels that don't exist.
 
-When reviewing open issues at the start of each phase, summarize them and propose actions — this behavior already exists in the Issue Tracking and Commits section of GUIDANCE.md.
+When reviewing open issues at the start of a work phase, summarize relevant issues and propose actions.
 
 ### Getting Started
-If this repo still has a `GUIDANCE.md` file, that means setup isn't complete yet. Read it and follow the instructions to prepare the repo for publication.
+Start with [README.md](README.md), then select the appropriate delivery path: [BYOD setup](setup/SETUP.md) or the [managed Skillable guide](docs/skillable/skillable.md). Keep their workspace preparation and provisioning responsibilities separate.
