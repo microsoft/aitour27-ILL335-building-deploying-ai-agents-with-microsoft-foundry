@@ -1,6 +1,6 @@
 ---
 name: ill335-troubleshooting
-description: Diagnoses ILL335 setup, authentication, dependency, Responses API, validation, and hosted-agent failures. Use when a learner reports an error, failed lab checkpoint, broken setup, deployment problem, rate limit, content filter, or unexpected model output.
+description: Diagnoses ILL335 setup, authentication, dependency, Responses API, validation, and hosted-agent failures. Use when a learner reports an error, failed lab checkpoint, broken setup, dev container or Codespaces prebuild failure, deployment problem, rate limit, content filter, or unexpected model output.
 license: MIT
 ---
 
@@ -14,6 +14,11 @@ Diagnose the smallest failing layer first. Do not provision, deploy, or delete A
 2. Identify the learner's operating system and lab number.
 3. Confirm the virtual environment is active.
 4. Run the smallest relevant check.
+
+For Docker workspace startup, Codespaces prebuilds, or container dependency
+failures, use [ill335-devcontainer](../ill335-devcontainer/SKILL.md). Establish
+BYOD versus managed Skillable first; do not direct managed learners to rebuild
+their environment or provision Azure resources.
 
 ## Diagnostic Order
 

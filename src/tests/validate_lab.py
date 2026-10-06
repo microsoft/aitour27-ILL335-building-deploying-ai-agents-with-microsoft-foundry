@@ -70,6 +70,7 @@ def test_file_structure():
         ".github/skills/ill335-responses-api/SKILL.md",
         ".github/skills/ill335-hosted-agent/SKILL.md",
         ".github/skills/ill335-troubleshooting/SKILL.md",
+        ".github/skills/ill335-devcontainer/SKILL.md",
         ".github/ISSUE_TEMPLATE/learner-lab-issue.yml",
         ".github/pull_request_template.md",
         # Infra
