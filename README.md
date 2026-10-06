@@ -64,7 +64,7 @@ Pick your next step based on your learning style:
 | **[Session Recording](https://aka.ms/aitour27/ILL335/youtube)** | A recording of session ILL335 by the session creator |
 | **[Microsoft Ignite ILL335 Presentation](./delivery-resources/ILL335-Attendee-Walkthrough-FY27.pptx)** | Lab Presentation |
 | **[Microsoft Learn](https://learn.microsoft.com)** | Official documentation and guided learning paths on these topics |
-| **[AI Tour 2027 Resource Center](https://aka.ms/aitour27-resource-center)** | Additional session repos and materials from AI Tour 2027 |
+| **[AI Tour 2027 Resource Center](https://aka.ms/aitour27)** | Additional session repos and materials from AI Tour 2027 |
 | **[Microsoft Foundry Community](https://aka.ms/MicrosoftFoundryDiscord-AITour27)** | Connect with other learners and experts in our Discord community |
 
 ### 🌟 Microsoft Learn MCP Server

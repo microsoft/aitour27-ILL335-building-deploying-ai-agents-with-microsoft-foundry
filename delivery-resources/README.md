@@ -9,8 +9,9 @@ The current lab is built for the AI Tour FY27 Skillable environment. Attendee pr
 ## Core materials
 
 | Item | Link | Notes |
-|:--|:--|:--|
-| Delivery deck | [English](https://aka.ms/aitour27/ILL335/slides/en) | Required URL |
+| --- | --- | --- |
+| Delivery deck | [ILL335 Presentation](https://github.com/microsoft/aitour27-ILL335-building-deploying-ai-agents-with-microsoft-foundry/blob/main/delivery-resources/ILL335-Attendee-Walkthrough-FY27.pptx)  | PowerPoint presentation |
+| Session recording | [ILL335 Video](https://aka.ms/aitour27/ILL335/youtube) | Video delivery |
 
 ---
 
