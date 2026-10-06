@@ -6,7 +6,7 @@
       "version": "2.61.0"
     },
     "ghcr.io/azure/azure-dev/azd:1": {
-      "version": "1.10.2"
+      "version": "1.27.1"
     }
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",

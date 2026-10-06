@@ -7,9 +7,9 @@ Configure the ILL335 Codespaces/dev-container workspace.
 
 Usage: .devcontainer/post-create.sh
 
-Installs the Microsoft Foundry azd extension, creates `.venv`, and installs root
-`requirements.txt`. It does not authenticate, create cloud resources, deploy,
-or delete anything.
+Installs the Microsoft Foundry azd extension, creates `.venv`, installs root
+`requirements.txt` and `src/agent/requirements.txt`, and runs `pip check`. It
+does not authenticate, create cloud resources, deploy, or delete anything.
 EOF
 }
 
@@ -66,10 +66,10 @@ fi
 azd ext list -o json | python3 -c '
 import json, sys
 extensions = {item["id"]: item["installedVersion"] for item in json.load(sys.stdin)}
-required = ("microsoft.foundry", "azure.ai.agents", "azure.ai.projects")
+required = ("microsoft.foundry",)
 missing = [extension_id for extension_id in required if not extensions.get(extension_id)]
 if missing:
-    raise SystemExit(f"Foundry extension installation incomplete: {", ".join(missing)}")
+    raise SystemExit(f"Foundry extension installation incomplete: {', '.join(missing)}")
 '
 
 if [[ -x .venv/bin/python ]]; then
