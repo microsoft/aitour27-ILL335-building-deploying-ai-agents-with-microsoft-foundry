@@ -4,7 +4,8 @@
 
 This AI Tour lab is **Building & Deploying AI Agents with Microsoft Foundry**.
 
-To begin, log in to the virtual machine with: +++@lab.VirtualMachine(ILL335:Win11).Password+++
+To begin, log in to the virtual machine with:
++++@lab.VirtualMachine(ILL335:Win11).Password+++
 
 # Part 1: Discover Foundry-hosted models
 
@@ -43,7 +44,8 @@ The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already insta
     If prompted for a Temporary Access Pass (TAP): +++@lab.CloudPortalCredential(User1).AccessToken+++
 
     If prompted for a Password: +++@lab.CloudPortalCredential(User1).Password+++
-5. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
+5. When asked if you wish to **Sign in to all apps and websites on this device**, select **No, this app only**.
+6. After signing in, select the Foundry project that shows up in the list. This is the project pre-provisioned for you in the lab environment, and it contains the model deployments you will use for Caldova's consumer sentiment analysis system.
 
 > **Note:** If no Foundry Projects is retrieved and listed for selection, it probably means that the resources provisioning for the lab hasn't been completed yet. Move to step 3 and continue exploring the model catalog while waiting for the provisioning to complete. then come back to this step in a few minutes and retry. 
 
@@ -59,9 +61,7 @@ In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog*
     
 > **Tip:** You can close the GitHub Copilot Chat window on the right side of the editor for now to have more space to explore the model catalog.
 
-Browse the available models. Use the filters on the top right corner of the catalog UI to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by feature (Web Search, Image Attachment, etc.).
-
-!IMAGE[filters.png](instructions356855/filters.png)
+Browse the available models. Use the filters on the left side panel of the catalog UI to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by feature (Web Search, Image Attachment, etc.).
 
 Select a model to view its model card. This will open a browser page with model's details. 
 
@@ -371,7 +371,7 @@ Sentiment classification and regulated routing are **independent** of each other
 
 ## Architecture
 
-!IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture_agents.png)
+!IMAGE[Caldova sentiment analysis and governed routing architecture](instructions356855/architecture_agent.png)
 
 The model runs in Foundry; JSON parsing and routing run in the local Python application. A content filter block produces **CONTENT_SAFETY** with confidence **0.0** and is escalated. Invalid JSON instead produces **NONE** with confidence **0.0** and is routed to **REVIEW_LOW_CONFIDENCE**. The script returns and prints action labels; it does not implement review queues or a dashboard.
 
@@ -660,7 +660,8 @@ If you only have one model deployed, deploy a second one from the Foundry Toolki
 2. Navigate to **Developer Tools → Discover → Model Catalog**.
 3. Apply the filter **Hosted by → Foundry** to see all Foundry-hosted models.
 4. In the search bar type **gpt-5.4**.
-5. Click **Deploy → Deploy with Default settings**.
+5. Click **Deploy → Custom Deploy**.
+6. Leave parameters as default and confirm by clicking on **Deploy to Microsoft Foundry**.
 
 Wait for the deployment to complete before proceeding. You should see the pop-up below once complete.
 
@@ -1224,8 +1225,8 @@ If you encountered any issues during this lab or would like to try it self-paced
 !IMAGE[Report Issues](instructions356855/issues.png)
 
 
-
 Continue the discussion in the Microsoft Foundry Community 
+
 !IMAGE[foundrydiscord.png](instructions356855/foundrydiscord.png)
 
 Happy building!
