@@ -30,6 +30,15 @@ If you're learning at your own pace:
 2. Follow [Setup](setup/SETUP.md) to provision Azure infrastructure with `azd` and configure your `.env`
 3. Work through the lab modules in [`docs/`](docs/README.md) — Lab 5 (model comparison) is a self-paced extension you can complete at home
 
+**Faster BYOD workspace setup:** Open the repository in GitHub Codespaces or use
+**Dev Containers: Reopen in Container** in VS Code. The
+[dev container](.devcontainer/devcontainer.json) installs Python 3.13, Azure CLIs,
+Foundry providers, VS Code extensions, and the main lab dependencies.
+See [container setup and Codespaces prebuilds](setup/SETUP.md#option-use-a-dev-container-or-github-codespaces-byod)
+for the remaining Azure setup and the administrator steps to enable cached prebuilds.
+Managed Skillable learners should continue using the provisioned VM and
+[Skillable guide](docs/skillable/skillable.md), not this BYOD option.
+
 ### 🎯 Learning outcomes
 
 By the end of this session, you will be able to:

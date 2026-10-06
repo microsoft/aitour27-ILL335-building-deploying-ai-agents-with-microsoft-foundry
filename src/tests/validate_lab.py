@@ -63,6 +63,8 @@ def test_file_structure():
         "azure.yaml",
         "requirements.txt",
         ".env.sample",
+        ".devcontainer/devcontainer.json",
+        ".devcontainer/post-create.sh",
         # Learner-support skills
         ".github/skills/ill335-lab-navigator/SKILL.md",
         ".github/skills/ill335-responses-api/SKILL.md",
@@ -126,6 +128,7 @@ def test_json_files():
     print("=" * 60)
 
     json_files = [
+        ".devcontainer/devcontainer.json",
         "src/sample_feedback.json",
         "infra/main.parameters.json",
         "infra/abbreviations.json",

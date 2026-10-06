@@ -33,6 +33,103 @@ New to AI development? Here are the core terms used throughout this workshop:
 
 ---
 
+## Option: Use a dev container or GitHub Codespaces (BYOD)
+
+This optional workspace setup is for self-guided learners using their own Azure
+subscription. **Managed Skillable learners must use their provisioned VM and
+[Skillable instructions](../docs/skillable/skillable.md)** instead; no classroom
+lifecycle changes are required.
+
+Choose one:
+
+- **Codespaces:** On GitHub, select **Code > Codespaces > Create codespace** on
+  the branch containing this configuration. No local Docker installation is needed.
+- **Local VS Code:** Install Docker with Linux containers and the
+  **Dev Containers** extension, clone this repository, and run
+  **Dev Containers: Reopen in Container**. If the checkout already has a
+  Windows/macOS `.venv`, rename it before reopening; the setup will not delete it.
+
+The [configuration](../.devcontainer/devcontainer.json) provides Python 3.13,
+Git, the latest stable Azure CLI and `azd`, Python/Pylance, and the Foundry Toolkit
+prerelease. The [workspace hook](../.devcontainer/post-create.sh) explicitly
+installs `microsoft.foundry`, `azure.ai.agents`, and `azure.ai.projects`, creates
+or reuses `.venv`, installs the root requirements, and runs `pip check`.
+It does **not** authenticate, register resource providers, provision/deploy
+resources, or create/read `.env`. It never copies host Azure credentials.
+
+Wait for **ILL335 development environment ready**, then open a Bash terminal:
+
+```bash
+source .venv/bin/activate
+python --version
+az version
+azd version
+azd ext list
+python -m pip check
+python src/tests/validate_lab.py
+```
+
+Expect Python 3.13, the Foundry bundle and both providers in the extension list,
+`No broken requirements found`, and an offline validation result of `PASS`
+(`.env` may be skipped until configured). The container installs only the main
+lab requirements: install the separate agent requirements when you reach
+[Lab 6](../docs/lab6-deploy-agent.md#install-agent-dependencies). Their SDK pins
+differ, so the hook deliberately does not combine the two requirement sets.
+Rerunning the hook reapplies the main lab pins; repeat Lab 6's dependency step
+after a rebuild if you are resuming that lab.
+
+Workspace preparation is not Azure provisioning. Continue with **Steps 3-5**
+below, authenticate `azd` in **Step 6**, and prepare `.env` in **Step 11**.
+For browser-based Codespaces, use device-code authentication:
+
+```bash
+az login --use-device-code
+azd auth login --use-device-code
+```
+
+Confirm Azure CLI and `azd` use the same tenant and subscription before cloud
+operations. Skip the already-completed tool/dependency installation steps.
+Alternatively, after authentication run `bash scripts/setup.sh` for the existing
+BYOD provisioning flow. That script creates billable Azure resources; review
+the [cleanup instructions](../cleanup/CLEANUP.md) before proceeding.
+Codespaces compute/storage can also incur charges independently of Azure.
+
+### Enable cached Codespaces prebuilds (repository administrators)
+
+The expensive workspace hook uses `updateContentCommand`, which runs during
+Codespaces prebuilds, rather than `postCreateCommand`, which runs only when a
+learner creates a codespace. `waitFor` prevents the workspace being declared ready
+before dependency installation finishes. Existing `.venv` packages and pip's
+normal download cache are reused on reruns; ordinary starts/attachments do not
+run the installation hook.
+
+**Committing this configuration does not enable hosted prebuilds.** After it is
+available on the target branch, a repository administrator must:
+
+1. Open **Settings > Codespaces > Prebuild configuration > Set up prebuild**.
+2. Select the workshop branch (normally `main`) and
+   `.devcontainer/devcontainer.json`.
+3. Choose the regions attendees will use and an update trigger, such as
+   **Every push** for fresh workshop dependencies. Configure only needed regions
+   and retention to limit storage cost.
+4. Save the configuration and wait for the GitHub-managed prebuild workflow to
+   succeed. GitHub Actions must be enabled and organizational Codespaces billing
+   and policies must allow prebuilds.
+5. Create a new codespace in a configured region using a machine type marked
+   **Prebuild ready**, then run the checks above. If no matching prebuild exists,
+   Codespaces performs a normal, slower setup.
+
+Prebuilds consume GitHub Actions minutes and Codespaces storage. Do not add Azure
+credentials, project endpoints, `.env` content, or login/provisioning commands to
+prebuilds. No custom workflow or container registry is needed. For local dev
+containers, Docker reuses downloaded image/Feature layers; hosted Codespaces
+snapshots are a separate cache enabled by the administrator.
+
+See GitHub's [prebuild configuration guide](https://docs.github.com/en/codespaces/prebuilding-your-codespaces/configuring-prebuilds)
+and [prebuild lifecycle](https://docs.github.com/en/codespaces/prebuilding-your-codespaces/about-github-codespaces-prebuilds).
+
+---
+
 ## Step 1: Verify Git
 
 ```bash
