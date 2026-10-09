@@ -63,6 +63,9 @@ In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog*
 
 Browse the available models. Use the filters on the left side panel of the catalog UI to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by feature (Web Search, Image Attachment, etc.).
 
+> **Note:** If you cannot see the filters on the left side of the catalog, look for **All filters** in the top right corner. 
+> !IMAGE[filters.png](instructions356855/filters.png)
+
 Select a model to view its model card. This will open a browser page with model's details. 
 
 > **Note:** This section is meant to make you familiarize with the model catalog and how to explore model details. You don't need to deploy any model, as the model you are going to use later in the lab is already pre-provisioned in the Foundry project you selected as workspace.
@@ -92,12 +95,14 @@ The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-eff
 
 > **Note:** The model card is opened in a web browser page. Make sure to return to VS Code after reviewing it to continue with the lab.
 
-## Step 6: Explore the playground (Optional)
+## Step 4: Explore the playground (Optional)
 
 1. Back in VS Code, under **Developer Tools → Build** in the toolkit panel, open the **Model Playground**.
 2. Select **gpt-5.4-mini** from the model dropdown.
 
 > **Note:** You see this model listed because it is pre-provisioned in your Foundry project. You do not need to deploy it yourself. If you cannot see it, come back to step 2 and ensure you connected to the provisioned Foundry project correctly.
+
+> **Tip:** If you cannot see the model/system prompt configuration panel, drag the instructions section to the right to extend the playground.
 
 3. In the **System prompt** (instructions) field, enter:
 
@@ -314,6 +319,10 @@ Then try a different input:
 input="Summarize two ways consumer feedback analysis could help Caldova."
 ```
 Observe whether the response follows both the durable instructions and the current input.
+
+> **Note:** Whenever you edit one file of your project save it ('CTRL+S' or '⌘+S') before running the script again. 
+
+> **Tip** If you get errors when running the new version of the script, double check the indention is correct. 
 
 ## Step 4: Try multi-turn continuity
 
@@ -626,7 +635,7 @@ Different models have different strengths:
 
 | Model | Strengths | Trade-offs |
 |-------|-----------|-----------|
-| gpt-5.4-mini | Fast, cost-efficient, good for simple tasks | May miss nuance in complex cases |
+| gpt-5.4-mini | Fast, cost-efficient, good for simple tasks | May miss nuances in complex cases |
 | gpt-5.4 | Higher reasoning quality, better at edge cases | Slower, more expensive |
 | Phi-4 | Open-weight, strong reasoning, runs on-device | May need different prompt tuning |
 
