@@ -181,7 +181,7 @@ if ($principalId) {
 if (-not $SkipProvision) {
     Write-Step "6/10" "Initializing azd environment..."
 
-    azd init --no-prompt -e $EnvironmentName 2>$null
+    azd init --minimal --no-prompt -e $EnvironmentName 2>$null
     azd env set AZURE_LOCATION $Location
     azd env set AZURE_SUBSCRIPTION_ID $account.id
     if ($principalId) {
