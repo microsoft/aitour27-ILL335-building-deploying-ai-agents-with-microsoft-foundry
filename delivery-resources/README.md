@@ -10,7 +10,7 @@ The current lab is built for the Frontier Tour FY27 Skillable environment. Atten
 
 | Item | Link | Notes |
 | --- | --- | --- |
-| Delivery deck | [ILL335 Presentation](https://github.com/microsoft/frontiertour27-ILL335-building-deploying-ai-agents-with-microsoft-foundry/blob/main/delivery-resources/ILL335-Attendee-Walkthrough-FY27.pptx)  | PowerPoint presentation |
+| Delivery deck | [English](https://aka.ms/ft27/ill335/slides/en) \| [Spanish](https://aka.ms/ft27/ill335/slides/es) | Session slides |
 | Session recording | [ILL335 Video](https://aka.ms/ft27/ill335/youtube) | Video delivery |
 
 ---
