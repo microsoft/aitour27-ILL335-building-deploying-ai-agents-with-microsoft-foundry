@@ -1013,17 +1013,13 @@ Evaluation generation creates synthetic cases and evaluators from the Caldova qu
 
 > **Preview and cost notice:** Generation and evaluation make billable model calls and can take several minutes. Skip this section during the core workshop when time is limited.
 
-Evaluation commands have moved from **azd ai agent eval** to the separate **azure.ai.evaluations** extension. The commands below were checked against extension version **1.0.0-beta.2**; see the Microsoft-owned [evaluations extension guide](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.evaluations). The old **--config eval.yaml** workflow no longer applies.
+Evaluation commands have moved from **azd ai agent eval** to the separate **azure.ai.evaluations** extension. The commands below were checked against extension version **1.0.0-beta.2**; see the Microsoft-owned [evaluations extension guide](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.evaluations). 
 
-With your instructor's approval, install the evaluations extension once on the lab VM and check the available options. Skip installation if the administrator has already installed it:
+Install the evaluations extension once on the lab VM and check the available options. 
 
 ```powershell
 azd extension install azure.ai.evaluations
-azd ai eval generate --help
-azd ai eval init --help
 ```
-
-If the extension cannot be installed or requires a newer CLI, stop and ask your instructor to check the lab image. Do not change subscriptions, authenticate with a different identity, or run BYOD setup.
 
 ## Generate and configure the suite
 
