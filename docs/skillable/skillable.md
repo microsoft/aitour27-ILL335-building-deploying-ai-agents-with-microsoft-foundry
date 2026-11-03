@@ -80,7 +80,7 @@ The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-eff
 
     If the VS Code confirmation dialog **"Do you want Code to open the external website?"** appears, click **Open** to continue. The model card opens in your web browser.
 
-    !IMAGE[VS Code external website confirmation dialog with the Open button](instructions356855/model_card_open_confirmation.png)
+    !IMAGE[model_card_open_confirmation.png](instructions356855/model_card_open_confirmation.png)
 
     You'll see 4 main tabs:
 
