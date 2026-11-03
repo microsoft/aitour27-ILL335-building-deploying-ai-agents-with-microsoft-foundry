@@ -191,7 +191,7 @@ For the first deployment in an environment, provision the project and deploy the
 azd up
 ```
 
-Later code-only changes use `azd deploy` instead. Each successful deployment creates an immutable agent version.
+Later code-only changes use `azd deploy caldova-consumer-sentiment-agent` instead. Targeting the agent avoids deploying optional evaluation resources added in Part C. Each successful deployment creates an immutable agent version.
 
 Check that the deployed version is active:
 
@@ -217,38 +217,92 @@ The agent status is `active`, and the remote invocation returns a JSON object wi
 
 A smoke test proves that one request works. A structured evaluation asks the same version to answer a repeatable set of tasks and uses evaluators to score whether its behavior matches the Caldova requirements.
 
-> **Preview and cost notice:** Hosted-agent evaluation generation is in preview. Generation and evaluation make billable model calls and can take several minutes.
+> **Preview and cost notice:** Generation and evaluation make billable model calls and can take several minutes. Skip this section during the core workshop when time is limited.
 
-Generate a 15-case smoke suite from the deployed agent and the Caldova evaluation brief:
+Evaluation commands have moved from `azd ai agent eval` to the separate `azure.ai.evaluations` extension. The commands below were checked against extension version `1.0.0-beta.2`; see the Microsoft-owned [evaluations extension guide](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.evaluations). The old `--config eval.yaml` workflow no longer applies.
+
+From the repository root, install the evaluations extension once per machine and check the available options:
 
 ```powershell
-azd ai agent eval generate `
-  --agent caldova-consumer-sentiment-agent `
-  --gen-instruction-file src/agent/evaluation-instructions.md `
-  --eval-model gpt-5.4-mini `
-  --max-samples 15 `
-  --out-file eval.yaml
+azd extension install azure.ai.evaluations
+azd ai eval generate --help
+azd ai eval init --help
 ```
 
-When prompted, confirm `caldova-consumer-sentiment-agent` as the evaluation suite name. Do not include traces for evaluation generation.
+If installation reports a CLI compatibility requirement, update `azd` to a version supported by the selected extension before continuing. Do not assume that the repository's minimum CLI version supports every newer preview extension.
 
-Foundry creates three reviewable assets for the agent:
+### Generate and configure the suite
 
-- `src/agent/eval.yaml`, which connects the agent, dataset, evaluators, and evaluation model.
-- `src/agent/datasets/caldova-consumer-sentiment-agent/caldova-consumer-sentiment-agent_dg.jsonl`, the synthetic dataset tuned to the agent's domain.
-- `src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json`, the evaluator definitions and rubric based on the evaluation brief.
-
-Open these files before running them. Check that the cases cover ordinary sentiment, mixed feedback, regulated review routing, valid JSON, and the prohibition on medical advice.
-
-Run the generated evaluation:
+Generate a 15-case dataset and a rubric from the deployed agent and the Caldova evaluation brief:
 
 ```powershell
-azd ai agent eval run --config eval.yaml
+azd ai eval generate `
+  --path evals `
+  --target caldova-consumer-sentiment-agent `
+  --agent-instruction-file src/agent/evaluation-instructions.md `
+  --from prompt `
+  --trace-days 0 `
+  --generation-model gpt-5.4-mini `
+  --max-samples 15 `
+  --dataset-name caldova-generated `
+  --evaluator-name caldova-quality
+```
+
+`--from prompt` selects instruction-based dataset generation, and `--trace-days 0` disables traces as context for the rubric. These explicit options avoid the trace-backed defaults when Application Insights is connected. Review the generation plan before confirming it. If files with these names already exist, inspect them before choosing whether to regenerate; do not overwrite a reviewed suite blindly.
+
+Generation writes artifacts under `evals/` and prints an `init` next step. Configure a turn-level evaluation using the generated catalog entries and an explicitly selected judge model:
+
+```powershell
+azd ai eval init `
+  --path evals `
+  --name caldova-generated `
+  --source dataset `
+  --evaluation-level turn `
+  --target caldova-consumer-sentiment-agent `
+  --dataset caldova-generated `
+  --evaluator caldova-quality `
+  --judge-model gpt-5.4-mini
+```
+
+This sequence generates the dataset before selecting it in `init`, rather than scaffolding a trace-based evaluation. The generation and judge roles are configured separately, even though this lab uses the same model deployment for both.
+
+Inspect these local assets before deploying or running them:
+
+- `evals/azure.eval.yaml`, which declares the datasets, evaluators, evaluation target, and judge configuration.
+- The generated dataset referenced by `file` under `evals/datasets/`.
+- The rubric referenced by `source` under `evals/evaluators/`.
+- The new evaluation service in the root `azure.yaml`, normally named `evals`, with `host: azure.ai.eval`, a dependency on `ai-project`, and a `$ref` to `./evals/azure.eval.yaml`.
+
+Use the paths recorded in the configuration, not the old agent-local dataset and rubric paths. Paths inside `evals/azure.eval.yaml` resolve relative to that file. Check that the cases cover ordinary sentiment, mixed feedback, regulated review routing, valid JSON, and the prohibition on medical advice. Confirm that the evaluator grades the assistant text and that dataset columns match its input mappings.
+
+### Deploy, run, and inspect results
+
+Part B has already provisioned the project. Register the evaluation resources without rebuilding the hosted agent, then start one evaluation run:
+
+```powershell
+azd deploy evals
+azd ai eval run start --path evals --eval caldova-generated --no-wait
+```
+
+If the generated service has a different name, use that service name instead of `evals` in `azd deploy`. Keep the returned run ID:
+
+```powershell
+$runId = "<run-id returned by run start>"
+azd ai eval run list --path evals --eval caldova-generated
+azd ai eval run show --path evals --eval caldova-generated --run $runId --wait
+azd ai eval run output list --path evals --eval caldova-generated --run $runId --failed-only
+```
+
+To inspect one failed row, copy its `ITEM` ID from the output list:
+
+```powershell
+$itemId = "<ITEM ID from run output list>"
+azd ai eval run output show $itemId --path evals --eval caldova-generated --run $runId
 ```
 
 Review the per-evaluator scores and inspect at least one failed or borderline case. A low score is useful evidence: it identifies where the instructions, dataset, or evaluator rubric need refinement.
 
-> **Tip:** The evaluation process might take several minutes to complete and the polling updates might time out. If that's the case, you can rerun the evaluation command `azd ai agent eval run` to continue monitoring its progress.
+> **Tip:** If monitoring times out, repeat `run show` with the same run ID, or use `run list` to find it. Do not repeat `run start` merely to resume monitoring: it creates a new, billable evaluation run.
 
 To inspect evaluation results, navigate to **Evaluations** under **My Resources** in the Foundry Toolkit UI. Click on the evaluation run, to review its details and any failed cases.
 
@@ -258,20 +312,22 @@ Because this workflow is in preview, verify what the evaluator graded before cha
 
 To correct that evaluator-input issue:
 
-1. Open `src/agent/evaluators/caldova-consumer-sentiment-agent/rubric_dimensions.json`.
+1. Open the rubric JSON file referenced by the `caldova-quality` evaluator's `source` in `evals/azure.eval.yaml`.
 2. Find the rubric dimension that produced the failed score, usually the JSON or schema-compliance dimension.
-3. Add this instruction to that dimension's rubric text:
+3. Add this instruction to that dimension's `description`:
 
   ```text
   Evaluate only the literal assistant text in sample.output_text. Ignore sample.output, sample.output_items, annotations, and all other Responses transport metadata. For schema compliance, pass when sample.output_text contains exactly one valid JSON object with all required fields, allowed labels, and value types, and no text outside the object.
   ```
 
-4. Save the file, upload only the corrected evaluator, and rerun the same evaluation:
+4. Save the file, deploy the evaluation service to publish the correction, and start a new run of the same evaluation:
 
 ```powershell
-azd ai agent eval update --config eval.yaml --evaluator-only
-azd ai agent eval run --config eval.yaml
+azd deploy evals
+azd ai eval run start --path evals --eval caldova-generated --no-wait
 ```
+
+Record the new run ID and inspect it with the monitoring commands above. Targeting `evals` avoids redeploying the agent; this replaces the old `eval update --evaluator-only` step.
 
 Classification, routing, and summary scores remain useful signals when their explanations cite the actual assistant text.
 
@@ -281,23 +337,31 @@ If the new explanation still discusses transport wrappers, or marks valid and sc
 
 Generated cases broaden coverage, but they do not replace human-reviewed expectations for regulated behavior. This repository also includes `src/agent/evals/caldova-golden.jsonl`, derived from the 15 labeled examples used earlier in the workshop.
 
-To build an evaluation from that fixed dataset instead, generate a separate recipe:
+To evaluate that fixed dataset, add a separately named evaluation using the same reviewed rubric. This registers the existing cases rather than synthesizing replacement data:
 
 ```powershell
-azd ai agent eval generate `
-  --agent caldova-consumer-sentiment-agent `
-  --dataset src/agent/evals/caldova-golden.jsonl `
-  --gen-instruction-file src/agent/evaluation-instructions.md `
-  --eval-model gpt-5.4-mini `
+azd ai eval init `
+  --path evals `
   --name caldova-golden-baseline `
-  --out-file eval.golden.yaml
+  --source dataset `
+  --evaluation-level turn `
+  --target caldova-consumer-sentiment-agent `
+  --dataset src/agent/evals/caldova-golden.jsonl `
+  --evaluator caldova-quality `
+  --judge-model gpt-5.4-mini
 ```
 
-Keep the generated suite for exploratory coverage and the golden suite for regression testing. After changing the prompt, model, or tools, run the same golden recipe again to measure whether the new agent version improved or regressed.
+Before running, inspect the new entry in `evals/azure.eval.yaml`. Ensure its input mappings use the golden rows' `query` as the agent input and make `expected_behavior` available to the evaluator as the reference expectation; adapt the rubric and mappings if needed rather than assuming generated and curated rows have identical schemas.
+
+```powershell
+azd deploy evals
+azd ai eval run start --path evals --eval caldova-golden-baseline --no-wait
+```
+
+Monitor the returned run ID as above, using `--eval caldova-golden-baseline`. Keep the generated suite for exploratory coverage and the golden suite for regression testing. After changing the prompt, model, or tools, run the same golden evaluation again to measure whether the new agent version improved or regressed.
 
 ### Evaluation checkpoint
 
 You can explain the difference between a one-off invocation, an AI-generated evaluation suite, and a curated golden regression set.
 
 **Next:** [Lab 7 - Workshop summary and learning outcomes](./lab7-summary.md)
-
