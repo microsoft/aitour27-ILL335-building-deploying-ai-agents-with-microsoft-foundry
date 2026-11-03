@@ -215,129 +215,294 @@ The agent status is `active`, and the remote invocation returns a JSON object wi
 
 ## Part C: Generate an evaluation suite (optional preview)
 
-A smoke test proves that one request works. A structured evaluation asks the same version to answer a repeatable set of tasks and uses evaluators to score whether its behavior matches the Caldova requirements.
+A smoke test checks one response. In this part, you will generate 15 test cases, run them against your deployed agent, and review the scores.
 
 > **Preview and cost notice:** Generation and evaluation make billable model calls and can take several minutes. Skip this section during the core workshop when time is limited.
 
-Evaluation commands have moved from `azd ai agent eval` to the separate `azure.ai.evaluations` extension. The commands below were checked against extension version `1.0.0-beta.2`; see the Microsoft-owned [evaluations extension guide](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.evaluations). The old `--config eval.yaml` workflow no longer applies.
+**Follow Steps 1-10 in order.** Stop if a command reports an error; use the troubleshooting table below before continuing. Each command block is a separate action: paste the whole block, press **Enter**, and wait for it to finish before pasting another.
 
-From the repository root, install the evaluations extension once per machine and check the available options:
+**Where to paste:** Run only blocks labelled **powershell** in the terminal. Blocks labelled **yaml** or **json** are file content or examples, not terminal commands. Follow the editor instructions beside those blocks.
+
+### Step 1: Open the correct terminal
+
+1. Complete Part B first: the deployed agent must be active and its smoke test must work.
+2. In VS Code, select **Terminal > New Terminal** and use **PowerShell**.
+3. Make sure the terminal is at the repository root: the folder containing `azure.yaml`, `.env`, and `src`.
+4. Keep this terminal open throughout Part C. The endpoint and run ID you set below belong to this terminal session.
+
+**Expected result:** You are ready to use the existing project and agent. You do not need to provision or redeploy them.
+
+### Step 2: Install the evaluations extension
+
+Run:
 
 ```powershell
 azd extension install azure.ai.evaluations
-azd ai eval generate --help
-azd ai eval init --help
 ```
 
-If installation reports a CLI compatibility requirement, update `azd` to a version supported by the selected extension before continuing. Do not assume that the repository's minimum CLI version supports every newer preview extension.
+**Expected result:** The extension installs successfully or is already installed. These instructions use `azure.ai.evaluations` `1.0.0-beta.2`, not the retired `azd ai agent eval` commands.
 
-### Generate and configure the suite
+If installation reports a CLI compatibility requirement, update `azd` to a version supported by that extension before continuing. See the Microsoft-owned [evaluations extension guide](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.evaluations) for command details.
 
-Generate a 15-case dataset and a rubric from the deployed agent and the Caldova evaluation brief:
+### Step 3: Set the existing project endpoint
+
+1. In VS Code Explorer, open the repository's existing `.env`.
+2. Find `PROJECT_ENDPOINT=` and copy **only the value after `=`**, without surrounding quotes.
+3. Run this block. When PowerShell displays the prompt, paste that value and press **Enter**:
+
+```powershell
+$env:FOUNDRY_PROJECT_ENDPOINT = Read-Host "Paste the existing PROJECT_ENDPOINT value"
+if ([string]::IsNullOrWhiteSpace($env:FOUNDRY_PROJECT_ENDPOINT)) {
+  throw "The existing Foundry project endpoint is required before continuing."
+}
+```
+
+**Expected result:** PowerShell returns to the prompt without an error. The evaluations CLI can now use the same project as your agent. It does not automatically read the Python agent's `PROJECT_ENDPOINT` key from `.env`.
+
+Do not print or share `.env`. Use the same authenticated identity and subscription as Part B. If you open a new terminal later, repeat this step.
+
+### Step 4: Generate the test cases and scoring rubric
+
+Run the following command. It asks for **turn-level** cases: one request and response per row, not multi-turn conversation scenarios.
 
 ```powershell
 azd ai eval generate `
   --path evals `
   --target caldova-consumer-sentiment-agent `
-  --agent-instruction-file src/agent/evaluation-instructions.md `
+  --agent-instruction-file src\agent\evaluation-instructions.md `
+  --evaluation-level turn `
   --from prompt `
   --trace-days 0 `
   --generation-model gpt-5.4-mini `
   --max-samples 15 `
-  --dataset-name caldova-generated `
-  --evaluator-name caldova-quality
+  --dataset-name caldova-generated-turn `
+  --evaluator-name caldova-quality-turn
 ```
 
-`--from prompt` selects instruction-based dataset generation, and `--trace-days 0` disables traces as context for the rubric. These explicit options avoid the trace-backed defaults when Application Insights is connected. Review the generation plan before confirming it. If files with these names already exist, inspect them before choosing whether to regenerate; do not overwrite a reviewed suite blindly.
+If prompted:
 
-Generation writes artifacts under `evals/` and prints an `init` next step. Configure a turn-level evaluation using the generated catalog entries and an explicitly selected judge model:
+1. For **What do you want to generate?**, select **Dataset and evaluator**.
+2. If asked for the evaluation level, select **Turn**, never **Conversation**.
+3. Check the generation plan against this table.
+4. Only when the settings match, choose **Generate** and wait for both jobs to finish.
+
+| Setting | Required value |
+|---------|----------------|
+| Agent | `caldova-consumer-sentiment-agent` |
+| Dataset | `caldova-generated-turn` |
+| Evaluation level | Turn |
+| Number of cases | 15 |
+| Dataset source | Prompt |
+| Evaluator | `caldova-quality-turn` |
+| Traces | Off |
+
+**Expected result:** Both artifacts are downloaded, and `evals/azure.eval.yaml` contains their catalog entries. The files are normally `evals/datasets/caldova-generated-turn.jsonl` and `evals/evaluators/caldova-quality-turn.json`.
+
+If the plan says **Conversation** or **scenarios**, cancel. If these names already exist, do not overwrite them automatically: use the recovery guidance below. Ignore the CLI's suggested next command for now; complete Step 5 first.
+
+### Step 5: Check the generated dataset
+
+**You do not need to run a command for this step.** Inspect the generated file in VS Code:
+
+1. Press **Ctrl+P**, enter `evals\datasets\caldova-generated-turn.jsonl`, and press **Enter**.
+2. Check that the file contains **15 non-empty lines**, with one JSON object per line. Use the editor's line numbers; ignore a final blank line.
+3. Check every object has a `"query"` field containing feedback text in quotes. The text must not be empty.
+
+   This is a simplified example of the required field, **not content to paste into the file**. Your generated objects may contain other fields too:
+
+```json
+{"query": "The delivery was late, but support kept me informed."}
+```
+
+4. Read the cases. Look for ordinary sentiment, mixed feedback, regulated review routing, and the prohibition on medical advice.
+5. In Explorer, open `evals/evaluators/caldova-quality-turn.json`. Check that its scoring descriptions cover those requirements and valid JSON.
+
+**Expected result:** You have reviewed 15 test cases, each with a non-empty `query`, and their scoring rubric.
+
+**Stop before Step 6** if the file is empty, the number of cases differs from 15, or any object lacks feedback text in `query`. Record the actual number of cases and check the generation output from Step 4. Objects containing only scenario fields such as `simulation_configuration` and `test_case_description` are conversation seeds, not the turn-level cases required here. Do not edit the file to force a pass.
+
+### Step 6: Create the local evaluation configuration
+
+Run:
 
 ```powershell
 azd ai eval init `
   --path evals `
-  --name caldova-generated `
+  --name caldova-generated-turn `
   --source dataset `
   --evaluation-level turn `
   --target caldova-consumer-sentiment-agent `
-  --dataset caldova-generated `
-  --evaluator caldova-quality `
+  --dataset caldova-generated-turn `
+  --evaluator caldova-quality-turn `
   --judge-model gpt-5.4-mini
 ```
 
-This sequence generates the dataset before selecting it in `init`, rather than scaffolding a trace-based evaluation. The generation and judge roles are configured separately, even though this lab uses the same model deployment for both.
+1. In the preview, confirm the name and dataset are `caldova-generated-turn`, the evaluation level is **turn**, and the evaluator is `caldova-quality-turn`.
+2. Confirm the agent is `caldova-consumer-sentiment-agent` and the judge model is `gpt-5.4-mini`.
+3. When asked to add the evaluation, choose **Add evaluation**.
+4. Open `evals/azure.eval.yaml` and confirm the new evaluation appears under `evals`.
 
-Inspect these local assets before deploying or running them:
+**Expected result:** The CLI updates the local evaluation configuration and reports an evaluation service in the root `azure.yaml`. The service might be named `caldova-consumer-sentiment-agent-evals`; its name is not necessarily `evals`.
 
-- `evals/azure.eval.yaml`, which declares the datasets, evaluators, evaluation target, and judge configuration.
-- The generated dataset referenced by `file` under `evals/datasets/`.
-- The rubric referenced by `source` under `evals/evaluators/`.
-- The new evaluation service in the root `azure.yaml`, normally named `evals`, with `host: azure.ai.eval`, a dependency on `ai-project`, and a `$ref` to `./evals/azure.eval.yaml`.
+The evaluation is configured locally, but it is **not registered in Foundry yet**. The next step does that. Paths in `evals/azure.eval.yaml` are relative to that file; use its `file` and `source` values if artifact paths differ. The evaluation service uses `host: azure.ai.eval`, depends on `ai-project`, and references `./evals/azure.eval.yaml`.
 
-Use the paths recorded in the configuration, not the old agent-local dataset and rubric paths. Paths inside `evals/azure.eval.yaml` resolve relative to that file. Check that the cases cover ordinary sentiment, mixed feedback, regulated review routing, valid JSON, and the prohibition on medical advice. Confirm that the evaluator grades the assistant text and that dataset columns match its input mappings.
+### Step 7: Register the evaluation in Foundry
 
-### Deploy, run, and inspect results
-
-Part B has already provisioned the project. Register the evaluation resources without rebuilding the hosted agent, then start one evaluation run:
+Run:
 
 ```powershell
-azd deploy evals
-azd ai eval run start --path evals --eval caldova-generated --no-wait
+azd ai eval create caldova-generated-turn --path evals
 ```
 
-If the generated service has a different name, use that service name instead of `evals` in `azd deploy`. Keep the returned run ID:
+**Expected result:** The named evaluation and its referenced dataset and evaluator are registered, or reported unchanged if already registered. This does not rebuild the agent.
+
+If this command fails, **stop before Step 8**. Do not use `azd up` or guess a service name as a workaround.
+
+### Step 8: Start one evaluation run
+
+Run this command **once**:
 
 ```powershell
-$runId = "<run-id returned by run start>"
-azd ai eval run list --path evals --eval caldova-generated
-azd ai eval run show --path evals --eval caldova-generated --run $runId --wait
-azd ai eval run output list --path evals --eval caldova-generated --run $runId --failed-only
+azd ai eval run start --path evals --eval caldova-generated-turn --no-wait
 ```
 
-To inspect one failed row, copy its `ITEM` ID from the output list:
+**Expected result:** The CLI accepts the run and returns a **run ID**. Copy that ID. Do not copy the dataset job ID from Step 4 or the evaluation ID from Step 7.
+
+### Step 9: Wait for that run to finish
+
+1. Copy the **run ID** from the output of Step 8.
+2. In the line below, replace `YOUR-RUN-ID-HERE` with that ID. **Keep the double quotes.**
+3. Paste your edited line into the same PowerShell terminal and press **Enter**:
 
 ```powershell
-$itemId = "<ITEM ID from run output list>"
-azd ai eval run output show $itemId --path evals --eval caldova-generated --run $runId
+$runId = "YOUR-RUN-ID-HERE"
 ```
 
-Review the per-evaluator scores and inspect at least one failed or borderline case. A low score is useful evidence: it identifies where the instructions, dataset, or evaluator rubric need refinement.
+This saves your ID as `$runId` for the remaining commands. **No output is expected from this line.** Do not run it with the placeholder unchanged.
 
-> **Tip:** If monitoring times out, repeat `run show` with the same run ID, or use `run list` to find it. Do not repeat `run start` merely to resume monitoring: it creates a new, billable evaluation run.
+4. Run this command exactly as shown. PowerShell uses the ID you saved:
 
-To inspect evaluation results, navigate to **Evaluations** under **My Resources** in the Foundry Toolkit UI. Click on the evaluation run, to review its details and any failed cases.
+```powershell
+azd ai eval run show --path evals --eval caldova-generated-turn --run $runId --wait
+```
+
+**Expected result:** The run reaches a terminal status and shows its results. A completed run can still contain failed test cases.
+
+If monitoring times out, repeat only the `run show` command above with the same `$runId`. **Do not repeat Step 8** just to resume monitoring: it starts another billable run.
+
+### Step 10: Review the scores and at least one result
+
+1. In the Foundry Toolkit, expand **My Resources > Evaluations**.
+2. Select your evaluation and the run you just completed.
+3. Review the scores for each criterion, not only the aggregate pass rate.
+4. Open a failed or borderline case and read both the assistant response (`sample.output_text`) and the evaluator's explanation. If all cases passed, inspect one passing case instead.
+
+You can also list failed cases in the terminal:
+
+```powershell
+azd ai eval run output list --path evals --eval caldova-generated-turn --run $runId --failed-only
+```
+
+If there are no failed cases, omit the filter to list passing cases too:
+
+```powershell
+azd ai eval run output list --path evals --eval caldova-generated-turn --run $runId
+```
+
+Look for the **ITEM** heading in the output. For example:
+
+```text
+ITEM   STATUS   RESULTS
+----   ------   -------
+1      failed   1 failed
+2      failed   1 failed
+3      passed   1 passed
+```
+
+**The ITEM ID is the number in the first column.** In this example, the first failed case is item **1**, the second is item **2**, and the passing case is item **3**. Your numbers and results may differ. The values beginning with `eval_` and `evalrun_` identify the evaluation and run, not the individual case.
+
+To open item **1**, run:
+
+```powershell
+azd ai eval run output show 1 --path evals --eval caldova-generated-turn --run $runId
+```
+
+Replace only the **1 immediately after `show`** to open a different listed item. For example, use `show 2` for item 2. Keep `$runId` as shown; it uses the run you saved in Step 9. **You do not need an `$itemId` variable.**
+
+Alternatively, copy and run the complete command printed under **View details** in your own output. That command already contains the item number and the correct evaluation and run IDs.
+
+**If some cases are missing from the table:** Results are paginated, normally 10 items at a time. A message such as `More items to come. Next page: --after 10` means there are additional cases, not that they were skipped. To list all failed cases across every page, run:
+
+```powershell
+azd ai eval run output list --path evals --eval caldova-generated-turn --run $runId --failed-only --all
+```
+
+Omit `--failed-only` if you want to list every case, including passes. Use each case's displayed **ITEM** number with `output show`.
 
 ![Evaluation Results](./images/eval_results.png)
 
-Because this workflow is in preview, verify what the evaluator graded before changing the agent. Open the failed row and read both `sample.output_text` and the evaluator's explanation. Valid JSON can still fail when it has a missing field, an unsupported label, or a value of the wrong type. In that case, the explanation will refer to the JSON fields and you should fix the agent instructions. However, if the explanation refers to a list, annotations, `sample.output`, or an output-item wrapper that does not appear in `sample.output_text`, the preview evaluator inspected Responses transport metadata instead of the assistant text.
+**Expected result:** You can identify a case, its response, its score, and the explanation for that score.
 
-To correct that evaluator-input issue:
+### Part C checkpoint
 
-1. Open the rubric JSON file referenced by the `caldova-quality` evaluator's `source` in `evals/azure.eval.yaml`.
-2. Find the rubric dimension that produced the failed score, usually the JSON or schema-compliance dimension.
-3. Add this instruction to that dimension's `description`:
+You have generated and checked 15 turn-level cases, registered an evaluation, completed a run, and reviewed a result. You can explain how this differs from the one-off smoke test in Part B.
 
-  ```text
-  Evaluate only the literal assistant text in sample.output_text. Ignore sample.output, sample.output_items, annotations, and all other Responses transport metadata. For schema compliance, pass when sample.output_text contains exactly one valid JSON object with all required fields, allowed labels, and value types, and no text outside the object.
-  ```
+**The main exercise is complete.** Continue to [Lab 7](./lab7-summary.md), or try the optional sections below.
 
-4. Save the file, deploy the evaluation service to publish the correction, and start a new run of the same evaluation:
+### Troubleshooting and recovery
+
+| What you see | What to do |
+|--------------|------------|
+| `unknown flag: --helpazd` | Two commands were joined together. Wait for the PowerShell prompt, then paste one complete command block at a time. |
+| `no Foundry project endpoint resolved` | Repeat Step 3 in the same terminal, then retry the command that failed. Do not create a new project. |
+| Existing `caldova-generated` conversation artifacts | Keep them. Steps 4-6 use new `caldova-generated-turn` and `caldova-quality-turn` names so the earlier files are not overwritten. Generating replacements incurs additional charges. |
+| The new `*-turn` files or evaluation already exist | Do not use `--force` blindly. If generation already succeeded, resume at Step 5. If initialization already succeeded and matches Step 6, resume at Step 7; `init` adds entries rather than replacing them. |
+| Missing `query`, or rows containing `simulation_configuration` | You generated conversation seeds. Stop; they are not turn-level input. Preserve them and repeat generation with the Step 4 settings and unused artifact names, or ask for help if those names are already taken. Do not add dummy queries or remove the agent target. |
+| `service name 'evals' doesn't exist` | Use the named `azd ai eval create` command in Step 7. The directory name is not the generated service name. |
+| Evaluation declared but not deployed | Complete Step 7 successfully before starting the run. Do not use a full `azd up` to bypass the error. |
+| Monitoring timed out or you lost the run ID | Use the command below to list existing runs, copy the correct ID, and repeat Step 9. Do not start a replacement run just to monitor progress. |
 
 ```powershell
-azd deploy evals
-azd ai eval run start --path evals --eval caldova-generated --no-wait
+azd ai eval run list --path evals --eval caldova-generated-turn
 ```
 
-Record the new run ID and inspect it with the monitoring commands above. Targeting `evals` avoids redeploying the agent; this replaces the old `eval update --evaluator-only` step.
+### Optional: Correct a preview evaluator's input
+
+Use this section only if a failed case appears to grade the Responses transport wrapper rather than the assistant's text.
+
+1. Compare `sample.output_text` with the evaluator's explanation. Missing fields, unsupported labels, wrong value types, or text outside the JSON object are genuine agent-output problems. If the explanation instead cites annotations, `sample.output`, `sample.output_items`, or a wrapper absent from the assistant text, continue below.
+2. In `evals/azure.eval.yaml`, find the `caldova-quality-turn` evaluator and open the JSON file named by its `source`.
+3. Find the failed dimension, usually JSON/schema compliance, and add this instruction to its `description`. Preserve valid JSON and save the file:
+
+```text
+Evaluate only the literal assistant text in sample.output_text. Ignore sample.output, sample.output_items, annotations, and all other Responses transport metadata. For schema compliance, pass when sample.output_text contains exactly one valid JSON object with all required fields, allowed labels, and value types, and no text outside the object.
+```
+
+4. Save the file and reconcile the named evaluation to publish the corrected rubric:
+
+```powershell
+azd ai eval create caldova-generated-turn --path evals
+```
+
+5. Only after registration succeeds, start a new run:
+
+```powershell
+azd ai eval run start --path evals --eval caldova-generated-turn --no-wait
+```
+
+Record the **new** run ID, then repeat Steps 9-10 with it. Registration reconciles the selected evaluation's assets without redeploying the agent.
 
 Classification, routing, and summary scores remain useful signals when their explanations cite the actual assistant text.
 
 If the new explanation still discusses transport wrappers, or marks valid and schema-compliant `sample.output_text` as not applicable, treat the schema score as a preview evaluator limitation. Report that criterion separately instead of changing the agent or relying on the aggregate pass rate.
 
-### Compare generated and curated coverage
+### Optional: Run the curated golden regression set
 
 Generated cases broaden coverage, but they do not replace human-reviewed expectations for regulated behavior. This repository also includes `src/agent/evals/caldova-golden.jsonl`, derived from the 15 labeled examples used earlier in the workshop.
 
-To evaluate that fixed dataset, add a separately named evaluation using the same reviewed rubric. This registers the existing cases rather than synthesizing replacement data:
+Do this only after Steps 1-10. It makes additional billable evaluation calls, but does not generate replacement cases.
+
+1. In the same terminal, add a separate evaluation that uses the existing golden dataset:
 
 ```powershell
 azd ai eval init `
@@ -346,22 +511,102 @@ azd ai eval init `
   --source dataset `
   --evaluation-level turn `
   --target caldova-consumer-sentiment-agent `
-  --dataset src/agent/evals/caldova-golden.jsonl `
-  --evaluator caldova-quality `
+  --dataset src\agent\evals\caldova-golden.jsonl `
+  --evaluator caldova-quality-turn `
   --judge-model gpt-5.4-mini
 ```
 
-Before running, inspect the new entry in `evals/azure.eval.yaml`. Ensure its input mappings use the golden rows' `query` as the agent input and make `expected_behavior` available to the evaluator as the reference expectation; adapt the rubric and mappings if needed rather than assuming generated and curated rows have identical schemas.
+   When prompted, confirm **turn** and choose **Add evaluation**. If the CLI already reported **eval added**, this step succeeded: do not run `init` again. Continue with the editor action below.
+
+2. **Editor action: edit the YAML file, not the terminal.**
+
+   - Click the VS Code editor, press **Ctrl+P**, enter `evals\azure.eval.yaml`, and press **Enter**.
+   - Press **Ctrl+F**, search for `name: caldova-golden-baseline`, then press **Esc** to return to editing.
+   - Within that evaluation, find its `evaluators` list and the `evaluator: caldova-quality-turn` entry. **Do not edit the separate, top-level evaluator catalog.**
+   - Add or update `dataMapping` inside that evaluator entry, as shown in the full example below. **Align `dataMapping` with `initializationParameters`, not with `target` or `evaluators`.** Its three mapping lines go two spaces further to the right.
+   - Keep existing properties such as `initializationParameters`. If `dataMapping` already exists, move or update it rather than adding a second copy.
+
+   **Full golden evaluation example for `evals/azure.eval.yaml`. Do not paste into PowerShell:**
+
+   Use this to update **only the `caldova-golden-baseline` entry under `evals`**. Keep the other evaluations and the top-level dataset/evaluator catalogs unchanged. Match the indentation of the other `- name:` entries in your file; preserve any additional existing properties.
+
+```yaml
+- name: caldova-golden-baseline
+  description: Basic quality evaluation for caldova-consumer-sentiment-agent
+  dataset: caldova-golden
+  evaluationLevel: turn
+  evaluators:
+    - evaluator: caldova-quality-turn
+      initializationParameters:
+        model: gpt-5.4-mini
+      dataMapping:
+        query: "{{item.query}}"
+        response: "{{sample.output_text}}"
+        ground_truth: "{{item.expected_behavior}}"
+  target:
+    type: agent
+    name: caldova-consumer-sentiment-agent
+```
+
+   **Indentation check:** `initializationParameters` and `dataMapping` start in the same column. `target` stays further left, aligned with `evaluators`. If `dataMapping` is aligned with `target`, move `dataMapping` and its three mapping lines to the right. Keep the dataset name that `init` generated if it differs from `caldova-golden`.
+
+   **Response mapping:** Use `response: "{{sample.output_text}}"` exactly as shown. `item` refers to fields in a dataset row; `sample.output_text` is the assistant text produced when the evaluation invokes the agent. The golden dataset has `query` and `expected_behavior`, not prewritten agent responses. Do not use `response: "{{item.response}}"` or add fabricated responses to the dataset.
+
+   If registration reports that the evaluator requires `response` but the dataset does not provide it, correct this one mapping in the editor, save the file, and retry the registration command in item 4. Do not rerun `init` or generate another dataset.
+
+   Press **Ctrl+S** to save. You should see these mappings inside the golden evaluation's evaluator entry, with no YAML syntax errors in the editor. If PowerShell says `evaluators:` or `dataMapping:` is not recognized, you pasted file content into the terminal; return to this editor step. You do not need to repeat `init`.
+
+3. **Editor action: update the rubric.** The dataset supplies `query` and `expected_behavior`; `sample.output_text` supplies the agent's generated text to the evaluator's `response` input when the run executes.
+
+   - Press **Ctrl+P**, enter `evals\evaluators\caldova-quality-turn.json`, and press **Enter**.
+   - The file has a `dimensions` array. Each object in it is one scoring dimension, with its own `id`, `description`, and `weight`.
+   - Press **Ctrl+F**, search for `"id": "sentiment_accuracy"`, then press **Esc**. Find the `description` in **that same object**; it may appear above the `id`.
+   - Append the sentence below to the end of that description, **inside its existing double quotes**, with a space after the original text. Do not add a new property or paste the sentence outside the string.
+
+   **Before: example sentiment dimension**
+
+```json
+{
+  "always_applicable": false,
+  "description": "The `sentiment` label correctly reflects the overall consumer tone of the message as positive, neutral, negative, or mixed.",
+  "id": "sentiment_accuracy",
+  "weight": 6
+}
+```
+
+   **After: the same dimension, with only its description extended**
+
+```json
+{
+  "always_applicable": false,
+  "description": "The `sentiment` label correctly reflects the overall consumer tone of the message as positive, neutral, negative, or mixed. When ground_truth is supplied, compare the response against those human-reviewed expectations as well as this dimension's requirements.",
+  "id": "sentiment_accuracy",
+  "weight": 6
+}
+```
+
+   **Edit the JSON file, not PowerShell.** These examples show one object from the `dimensions` array, not the whole file. Keep your original description and append the sentence; do not replace the entire file or array. Leave `id`, `weight`, `always_applicable`, other dimensions, and file-level settings such as `pass_threshold` unchanged.
+
+   Repeat the same description-only edit for the routing and summary dimensions, commonly named `review_category_routing` and `evidence_based_summary`. If generated IDs differ, find them by their descriptions of review routing and evidence-based summaries.
+
+   Press **Ctrl+S**. The description must remain a valid JSON string; do not insert an unescaped line break inside the quotes. Visual word wrapping in the editor is fine.
+
+   **Expected result:** The sentiment, routing, and summary descriptions each retain their original requirements and now include **When ground_truth is supplied, compare the response against those human-reviewed expectations as well as this dimension's requirements.** There should be no JSON syntax errors in the editor. This rubric is shared with the generated evaluation; the extra instruction applies when a reference expectation is supplied.
+
+4. **Terminal action: register the golden evaluation.** Return to the same PowerShell terminal. Only after saving both files, run:
 
 ```powershell
-azd deploy evals
+azd ai eval create caldova-golden-baseline --path evals
+```
+
+5. **Terminal action: start its run.** Only after registration succeeds, run:
+
+```powershell
 azd ai eval run start --path evals --eval caldova-golden-baseline --no-wait
 ```
 
-Monitor the returned run ID as above, using `--eval caldova-golden-baseline`. Keep the generated suite for exploratory coverage and the golden suite for regression testing. After changing the prompt, model, or tools, run the same golden evaluation again to measure whether the new agent version improved or regressed.
+6. Copy this run's ID. Repeat Steps 9-10, replacing **every** `--eval caldova-generated-turn` with `--eval caldova-golden-baseline` and setting `$runId` to this new ID.
 
-### Evaluation checkpoint
-
-You can explain the difference between a one-off invocation, an AI-generated evaluation suite, and a curated golden regression set.
+**Expected result:** You can review a separate run against the fixed, human-reviewed cases. Keep generated cases for exploratory coverage and reuse the golden evaluation after prompt, model, or tool changes to detect regressions.
 
 **Next:** [Lab 7 - Workshop summary and learning outcomes](./lab7-summary.md)

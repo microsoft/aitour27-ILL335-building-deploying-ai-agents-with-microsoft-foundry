@@ -396,12 +396,12 @@ def test_api_and_session_content():
         "# Part C: Generate an evaluation suite",
         "azd extension install azure.ai.evaluations",
         "azd ai eval generate",
-        "--agent-instruction-file src/agent/evaluation-instructions.md",
+        r"--agent-instruction-file src\agent\evaluation-instructions.md",
         "--from prompt",
         "--trace-days 0",
         "azd ai eval init",
         "evals/azure.eval.yaml",
-        "azd deploy evals",
+        "azd ai eval create caldova-generated-turn --path evals",
         "azd ai eval run start",
         "azd ai eval run show",
         "azd ai eval run output list",
@@ -433,6 +433,80 @@ def test_api_and_session_content():
         )
     else:
         record("Skillable guide uses current ILL335 hosted-agent flow", "PASS")
+
+    for source in ["docs/lab6-deploy-agent.md", "docs/skillable/skillable.md"]:
+        content = (REPO_ROOT / source).read_text(encoding="utf-8")
+        blocks = re.findall(r"```powershell\s*\n(.*?)```", content, re.DOTALL)
+        generation_blocks = [
+            block
+            for block in blocks
+            if re.search(r"(?m)^\s*azd ai eval generate\s+`", block)
+        ]
+        problems = []
+        part_c = content.partition(
+            "Part C: Generate an evaluation suite (optional preview)"
+        )[2]
+        steps = re.findall(
+            r"^#{2,3} Step (\d+):[^\n]*\n(.*?)(?=^#{1,3} |\Z)",
+            part_c,
+            re.MULTILINE | re.DOTALL,
+        )
+        if [int(number) for number, _ in steps] != list(range(1, 11)):
+            problems.append("Part C must provide Steps 1-10 in order")
+        if any("**Expected result:**" not in body for _, body in steps):
+            problems.append("Each Part C step must describe its expected result")
+        if not generation_blocks or any(
+            not re.search(r"--evaluation-level\s+turn(?:\s|$)", block)
+            for block in generation_blocks
+        ):
+            problems.append("Generation must explicitly select --evaluation-level turn")
+        for marker in [
+            "$env:FOUNDRY_PROJECT_ENDPOINT",
+            "15 non-empty lines",
+            '"query": "The delivery was late, but support kept me informed."',
+            "Do not edit the file to force a pass.",
+            "azd ai eval create caldova-generated-turn --path evals",
+            "azd ai eval create caldova-golden-baseline --path evals",
+            '$runId = "YOUR-RUN-ID-HERE"',
+            "ITEM   STATUS   RESULTS",
+            "The ITEM ID is the number in the first column.",
+            "azd ai eval run output show 1 --path evals",
+            "--failed-only --all",
+            "Editor action: edit the YAML file, not the terminal.",
+            "Do not paste into PowerShell:",
+            "Keep existing properties such as",
+        ]:
+            if marker not in content:
+                problems.append(f"Missing: {marker}")
+        if any(
+            re.search(r"(?m)^\s*azd deploy evals(?:\s|$)", block)
+            for block in blocks
+        ):
+            problems.append("Evaluation registration must not assume a service named evals")
+        if any(
+            "azd ai eval create " in block and "azd ai eval run start " in block
+            for block in blocks
+        ):
+            problems.append("Registration and run start must be separate command blocks")
+        golden_section = content.partition(
+            "Optional: Run the curated golden regression set"
+        )[2]
+        golden_examples = re.findall(
+            r"```yaml\s*\n(.*?)```", golden_section, re.DOTALL
+        )
+        if not golden_examples or any(
+            'response: "{{sample.output_text}}"' not in example
+            or 'response: "{{item.response}}"' in example
+            for example in golden_examples
+        ):
+            problems.append(
+                "Golden evaluator response must bind to sample.output_text, not a dataset response column"
+            )
+        record(
+            f"{source} uses the turn-level evaluation workflow",
+            "FAIL" if problems else "PASS",
+            "; ".join(problems),
+        )
 
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     for value, label in {
