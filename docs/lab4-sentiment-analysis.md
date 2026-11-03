@@ -22,7 +22,7 @@ Sentiment classification and regulated routing are **independent** of each other
 
 ![Caldova sentiment analysis and governed routing architecture](images/architecture_agents.png)
 
-[Editable diagram source](images/architecture.svg). The model runs in Foundry; JSON parsing and routing run in the local Python application. A content filter block produces `CONTENT_SAFETY` with confidence `0.0` and is escalated. Invalid JSON instead produces `NONE` with confidence `0.0` and is routed to `REVIEW_LOW_CONFIDENCE`. The script returns and prints action labels; it does not implement review queues or a dashboard.
+The model runs in Foundry; JSON parsing and routing run in the local Python application. A content filter block produces `CONTENT_SAFETY` with confidence `0.0` and is escalated. Invalid JSON instead produces `NONE` with confidence `0.0` and is routed to `REVIEW_LOW_CONFIDENCE`. The script returns and prints action labels; it does not implement review queues or a dashboard.
 
 This pipeline uses **prompt-based JSON**: the system prompt instructs the model to respond only with valid JSON. For even stricter guarantees, OpenAI models support [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs), a `response_format` parameter that constrains the model to conform to a JSON schema. This lab uses the prompt-based approach for simplicity and portability across model providers.
 
@@ -230,15 +230,95 @@ python src/02_sentiment_analysis.py --file src/sample_feedback.json
 
 ## Step 6: Customize the routing logic
 
-Try adjusting the confidence threshold in the `route_feedback` function:
+In this exercise, first try changing the confidence threshold, then add a specific rule for the **SUPPORT** topic. Make these changes in the VS Code editor, not in the terminal.
 
-| Threshold change | Effect |
-|-----------------|--------|
-| Lower the confidence threshold (0.8 → 0.6) | More feedback goes straight to the dashboard |
-| Raise the confidence threshold (0.8 → 0.9) | More feedback routed for a low-confidence human check |
-| Add a new topic-based routing rule | Custom handling for a specific topic, such as VALUE |
+### 6a. Try a different confidence threshold
 
-After each change, re-run the sentiment analysis script to see the effect on the same 5 sample feedback items.
+1. Open `src/02_sentiment_analysis.py` and find `def route_feedback`.
+2. Change `if confidence < 0.8:` to one of the alternatives below, then press **Ctrl+S**.
+
+| Code change | Effect on feedback whose review category is NONE |
+|-------------|-------------------------------------------------|
+| `if confidence < 0.6:` | Confidence from 0.6 up to, but not including, 0.8 can now reach the dashboard |
+| `if confidence < 0.9:` | Confidence from 0.8 up to, but not including, 0.9 now needs a low-confidence human check |
+
+3. From the repository root, rerun the same five built-in samples:
+
+```powershell
+python src\02_sentiment_analysis.py
+```
+
+**Expected result:** The threshold can change routing for non-regulated feedback. Regulated feedback must still return `ESCALATE_FOR_REVIEW`, regardless of confidence. The model may return different classifications on each run, and the five samples may not include a confidence value in the changed range.
+
+### 6b. Add a SUPPORT topic rule
+
+**Business rule:** When feedback has the `SUPPORT` topic, review category `NONE`, and confidence **at least 0.8**, return `REVIEW_SUPPORT_FEEDBACK` instead of sending it straight to the sentiment dashboard. This represents a customer-support review decision; the lab prints the label but does not create a real support queue or ticket.
+
+1. In `src/02_sentiment_analysis.py`, replace **only** the existing `route_feedback` function with the following code. This restores the confidence threshold to `0.8` and adds the topic check **after** the regulated-category and low-confidence checks:
+
+```python
+def route_feedback(result: dict) -> str:
+    """Route insights to analytics or an appropriate human review queue."""
+    review_category = result.get("review_category", "NONE")
+    confidence = result.get("confidence", 0.0)
+
+    if review_category != "NONE":
+        return "ESCALATE_FOR_REVIEW"
+    if confidence < 0.8:
+        return "REVIEW_LOW_CONFIDENCE"
+    if "SUPPORT" in result.get("topics", []):
+        return "REVIEW_SUPPORT_FEEDBACK"
+    return "ADD_TO_SENTIMENT_DASHBOARD"
+```
+
+2. Press **Ctrl+S**. Keep the checks in that order:
+
+| Input | Expected action |
+|-------|-----------------|
+| SUPPORT, NONE, confidence 0.95 | `REVIEW_SUPPORT_FEEDBACK` |
+| SUPPORT, NONE, confidence 0.5 | `REVIEW_LOW_CONFIDENCE` |
+| SUPPORT with POTENTIAL_ADVERSE_EVENT, confidence 0.95 | `ESCALATE_FOR_REVIEW` |
+| VALUE, NONE, confidence 0.95 | `ADD_TO_SENTIMENT_DASHBOARD` |
+
+3. Check these fixed cases without making Azure calls. In VS Code Explorer, right-click `src`, select **New File**, and name it `check_routing.py`. Paste the following **Python file content** into the editor and save it:
+
+```python
+from importlib import import_module
+
+route_feedback = import_module("02_sentiment_analysis").route_feedback
+
+checks = [
+    ("Support feedback", {"topics": ["SUPPORT"], "review_category": "NONE", "confidence": 0.95}),
+    ("Low confidence", {"topics": ["SUPPORT"], "review_category": "NONE", "confidence": 0.5}),
+    ("Regulated feedback", {"topics": ["SUPPORT"], "review_category": "POTENTIAL_ADVERSE_EVENT", "confidence": 0.95}),
+    ("Other topic", {"topics": ["VALUE"], "review_category": "NONE", "confidence": 0.95}),
+]
+
+for name, result in checks:
+    print(f"{name}: {route_feedback(result)}")
+```
+
+4. Return to the terminal at the repository root and run:
+
+```powershell
+python src\check_routing.py
+```
+
+**Expected output:**
+
+```text
+Support feedback: REVIEW_SUPPORT_FEEDBACK
+Low confidence: REVIEW_LOW_CONFIDENCE
+Regulated feedback: ESCALATE_FOR_REVIEW
+Other topic: ADD_TO_SENTIMENT_DASHBOARD
+```
+
+If any label differs, check the function's indentation, condition order, and saved changes before continuing.
+
+5. Rerun `python src\02_sentiment_analysis.py` to see the rule applied to the same five model-analyzed samples. This makes additional model calls. The delivery/customer-support sample can now show `REVIEW_SUPPORT_FEEDBACK` if it is classified as `SUPPORT`, `NONE`, and confidence at least `0.8`. Regulated signals must still take priority. Use the fixed cases above, rather than a guaranteed model label, to verify the rule itself.
+6. After the experiment, restore the standard routing for later labs: remove only the `if "SUPPORT" ...` line and its `return "REVIEW_SUPPORT_FEEDBACK"` line, keep the threshold at `0.8`, and save. Delete the temporary `src/check_routing.py` file.
+
+**Checkpoint:** You can explain the routing order: regulated review first, low-confidence review second, the custom topic rule third, and the dashboard otherwise. Sentiment does not determine the routing action.
 
 ## What you learned
 
@@ -256,4 +336,3 @@ After each change, re-run the sentiment analysis script to see the effect on the
 ---
 
 **Next:** [Lab 5 - Compare model outputs (Optional)](./lab5-model-comparison.md)
-

@@ -134,7 +134,7 @@ You started with a model in a catalog and finished with a production-ready hoste
 
 If you encountered any issues during this lab or would like to try it self-paced, see the repository issues page.
 
-![Report issues](../images/issues.png)
+![Report issues](images/issues.png)
 
 Happy building!
 | `azure.yaml` | Direct-code hosted-agent configuration |
@@ -152,4 +152,3 @@ If you encountered an issue, use the repository support guidance after the lab.
 ---
 
 **Next:** [Clean up your Azure resources](../cleanup/CLEANUP.md)
-

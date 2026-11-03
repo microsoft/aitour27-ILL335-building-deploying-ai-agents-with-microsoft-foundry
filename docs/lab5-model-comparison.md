@@ -37,13 +37,13 @@ If you only have one model deployed, deploy a second one from the Foundry Toolki
 
 1. Click the Foundry Toolkit icon in the VS Code Activity Bar to open the extension panel.
 2. Navigate to **Developer Tools → Discover → Model Catalog**.
-3. Apply the filter **Hosted by → Foundry** to see all Foundry-hosted models.
+3. Apply the filter **Hosted by → Microsoft Foundry** to see all Foundry-hosted models.
 4. In the search bar type **gpt-5.4**.
 5. Click **Deploy → Deploy with Default settings**.
 
 Wait for the deployment to complete before proceeding. You should see the pop-up below once complete.
 
-![Foundry Toolkit Deployment Complete](../images/ftk_deployment_success.png)
+![Foundry Toolkit Deployment Complete](images/ftk_deployment_success.png)
 
 > **Note:** If you are unable to deploy a second model, skip this lab and proceed to Lab 6.
 
@@ -161,4 +161,3 @@ If you finish early, try these:
 ---
 
 **Next:** [Lab 6 - Deploy a hosted agent](./lab6-deploy-agent.md)
-

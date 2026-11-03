@@ -18,16 +18,16 @@ Explore the Foundry Toolkit model catalog in Visual Studio Code to discover avai
 3. Navigate to the `Desktop` folder, select `AI-Tour-ILL335-main`, and click **Select folder**.
 4. When prompted with "Do you trust the authors of the files in this folder?", select **Yes, I trust the authors**.
 
-    ![trust.png](../images/trust.png)
+    ![trust.png](images/trust.png)
 5. You should see the project files in the sidebar.
 
 ## Step 2: Open the Foundry Toolkit in Visual Studio Code
 
-The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already installed on the lab virtual machine, so you can explore models without leaving your editor -- no web browser required.
+The [**Foundry Toolkit** extension](https://aka.ms/ftk_install) is already installed on the lab virtual machine, so you can browse the model catalog inside your editor. Individual model cards open in your web browser.
 
 1. In the **Activity Bar** on the left, click the **Foundry Toolkit** icon to open the toolkit panel.
 
-    ![Foundry Toolkit Icon](../images/ftk_icon.png)
+    ![Foundry Toolkit Icon](images/ftk_icon.png)
 2. Click **Set Foundry Project → Switch Project → Sign in to Azure**.
 3. When prompted to sign in to Azure to access your Foundry resources, use the following Azure credentials:
 
@@ -44,10 +44,14 @@ The toolkit panel is your central hub for browsing models, testing them in a pla
 
 1. In the Foundry Toolkit panel, under **Developer Tools**, select **Model Catalog** to open the model catalog view. These are production-ready, hosted models you can use without fine-tuning.
 
-    ![Model Catalog](../images/model_catalog.png)
+    ![Model Catalog](images/model_catalog.png)
 2. Browse the available models. Use the filters at the top of the catalog to narrow the list -- for example, by Publisher (Azure OpenAI, Microsoft, Meta, Mistral, etc.), by where the model is **hosted by** (such as Microsoft Foundry), or by task (Responses, Image Analysis, etc.).
 
-Select a model to view its model card. Take note of the following properties.
+Select a model to view its model card. If the VS Code confirmation dialog **"Do you want Code to open the external website?"** appears, click **Open** to continue. The model card opens in your web browser.
+
+![VS Code external website confirmation dialog with the Open button](images/model_card_open_confirmation.png)
+
+Take note of the following properties.
 
 | Property | Common values |
 |----------|---------------|
@@ -76,7 +80,7 @@ Recommended models for this lab:
 
 The **gpt-5.4-mini** model from Azure OpenAI is high quality, fast, and cost-efficient, which makes it ideal for Caldova's consumer sentiment analysis pipeline.
 
-Find **gpt-5.4-mini** in the catalog and open its detail page. Explore the tabs at the top:
+Find **gpt-5.4-mini** in the catalog and click its name to open its detail page. If the VS Code confirmation dialog **"Do you want Code to open the external website?"** appears, click **Open** to continue. Explore the tabs at the top of the model card in your browser:
 
 1. **Details** -- Model description and capabilities
 2. **Benchmarks** -- Scores and performance metrics
@@ -114,4 +118,3 @@ Find **gpt-5.4-mini** in the catalog and open its detail page. Explore the tabs 
 ---
 
 **Next:** [Lab 2 - Verify your project](./lab2-verifysetup.md)
-
