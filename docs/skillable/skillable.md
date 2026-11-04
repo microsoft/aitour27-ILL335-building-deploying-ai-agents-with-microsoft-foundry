@@ -1095,7 +1095,7 @@ The agent status is **active**, and the remote invocation returns a JSON object 
 
 # Part C: Generate an evaluation suite (optional preview)
 
-A smoke test checks one response. In this part, you will generate 15 test cases, run them against your deployed agent, and review the scores.
+A smoke test checks one response. In this part, you will request 15 test cases, check the generated dataset, run the cases against your deployed agent, and review the scores.
 
 > **Preview and cost notice:** Generation and evaluation make billable model calls and can take several minutes. Skip this section during the core workshop when time is limited.
 
@@ -1143,6 +1143,8 @@ Do not print or share **.env**. Keep the lab's existing authenticated identity a
 
 Run the following command. It asks for **turn-level** cases: one request and response per row, not multi-turn conversation scenarios.
 
+**--max-samples 15** requests up to 15 cases; it does not guarantee that the preview generator returns exactly 15. Wait for both generation jobs to finish, then check the actual count in Step 5 before initializing or running an evaluation.
+
 ```powershell
 azd ai eval generate `
     --path evals `
@@ -1183,7 +1185,7 @@ If the plan says **Conversation** or **scenarios**, cancel. If these names alrea
 **You do not need to run a command for this step.** Inspect the generated file in VS Code:
 
 1. Press **Ctrl+P**, enter **evals\datasets\caldova-generated-turn.jsonl**, and press **Enter**.
-2. Check that the file contains **15 non-empty lines**, with one JSON object per line. Use the editor's line numbers; ignore a final blank line.
+2. Count the non-empty lines, with one JSON object per line. The exercise target is **15 non-empty lines**. Use the editor's line numbers; ignore a final blank line. If you see fewer, such as 13, follow the recovery instructions below before proceeding to Step 6.
 3. Check every object has a **"query"** field containing feedback text in quotes. The text must not be empty.
 
    This is a simplified example of the required field, **not content to paste into the file**. Your generated objects may contain other fields too:
@@ -1198,6 +1200,16 @@ If the plan says **Conversation** or **scenarios**, cancel. If these names alrea
 **Expected result:** You have reviewed 15 test cases, each with a non-empty **query**, and their scoring rubric.
 
 **Stop before Step 6** if the file is empty, the number of cases differs from 15, or any object lacks feedback text in **query**. Record the actual number of cases and ask your instructor to check the generation output from Step 4. Objects containing only scenario fields such as **simulation_configuration** and **test_case_description** are conversation seeds, not the turn-level cases required here. Do not edit the file to force a pass.
+
+**If fewer than 15 cases were generated:**
+
+1. Confirm that both generation jobs have finished and inspect their output for errors. Do not start another generation while either job is still running.
+2. Preserve the existing files and catalog. Do not add dummy rows, duplicate cases, or use **--force** to overwrite them.
+3. With your instructor's approval, retry Step 4 once, changing only **--path evals** to **--path evals-retry-1**, an unused folder. Keep the dataset and evaluator names unchanged. This makes additional billable model calls and may produce different cases.
+4. Repeat Step 5 using **evals-retry-1\datasets\caldova-generated-turn.jsonl** and **evals-retry-1/evaluators/caldova-quality-turn.json**. If the retry passes all Step 5 checks, use **--path evals-retry-1** instead of **--path evals** in every remaining evaluation command, and open files under **evals-retry-1/** instead of **evals/**. Do not mix the original dataset or rubric with the retry.
+5. If that folder already exists, or the retry still fails the checks, stop and ask your instructor. You can skip this optional Part C and continue to **Part 7: Workshop summary and learning outcomes** rather than repeatedly generating billable replacements.
+
+**Dataset count is not a pass count.** A 15-row dataset can yield **15 passed, 0 failed** or **13 passed, 2 failed**. Generated cases, agent responses, and preview evaluator judgments can vary between runs. Both totals account for 15 evaluated cases; inspect each failed case in Step 10 rather than regenerating until all cases pass.
 
 ## Step 6: Create the local evaluation configuration
 
@@ -1335,6 +1347,7 @@ You have generated and checked 15 turn-level cases, registered an evaluation, co
 | **no Foundry project endpoint resolved** | Repeat Step 3 in the same terminal, then retry the command that failed. Do not create a new project. |
 | Existing **caldova-generated** conversation artifacts | Keep them. Steps 4-6 use new **caldova-generated-turn** and **caldova-quality-turn** names so the earlier files are not overwritten. Generating replacements incurs additional charges; follow your instructor's directions. |
 | The new **\*-turn** files or evaluation already exist | Do not use **--force** blindly. If generation already succeeded, resume at Step 5. If initialization already succeeded and matches Step 6, resume at Step 7; **init** adds entries rather than replacing them. |
+| Fewer than 15 dataset rows, such as 13 | Stop before Step 6 and follow the Step 5 recovery instructions. A completed generation can return fewer than the requested maximum; do not overwrite existing artifacts or pad the dataset. |
 | Missing **query**, or rows containing **simulation_configuration** | You generated conversation seeds. Stop; they are not turn-level input. Preserve them and ask your instructor before regenerating with the Step 4 settings and unused artifact names. Do not add dummy queries or remove the agent target. |
 | **service name 'evals' doesn't exist** | Use the named **azd ai eval create** command in Step 7. The directory name is not the generated service name. |
 | Evaluation declared but not deployed | Complete Step 7 successfully before starting the run. Do not use a full **azd up** to bypass the error. |
@@ -1348,9 +1361,11 @@ azd ai eval run list --path evals --eval caldova-generated-turn
 
 Use this section only if a failed case appears to grade the Responses transport wrapper rather than the assistant's text.
 
+**If all cases pass:** A result such as **15 passed, 0 failed, 0 errored, 0 skipped (100%)** is a valid outcome; a failed dimension is not required. Review one passing case and its explanation as described in Step 10, then skip this entire correction section. Leave the evaluator unchanged and do not generate or rerun cases just to produce a failure. Continue to **Part 7: Workshop summary and learning outcomes**, or optionally run the curated golden regression set below.
+
 1. Compare **sample.output_text** with the evaluator's explanation. Missing fields, unsupported labels, wrong value types, or text outside the JSON object are genuine agent-output problems. If the explanation instead cites annotations, **sample.output**, **sample.output_items**, or a wrapper absent from the assistant text, continue below.
 2. In **evals/azure.eval.yaml**, find the **caldova-quality-turn** evaluator and open the JSON file named by its **source**.
-3. Find the failed dimension, usually JSON/schema compliance, and add this instruction to its **description**. Preserve valid JSON and save the file:
+3. Only for a confirmed wrapper-based failure from item 1, find the failed dimension, usually JSON/schema compliance, and add this instruction to its **description**. If no such failed dimension exists, stop here and skip the remaining correction steps; no evaluator edit or new run is needed. Otherwise, preserve valid JSON and save the file:
 
 ```text
 Evaluate only the literal assistant text in sample.output_text. Ignore sample.output, sample.output_items, annotations, and all other Responses transport metadata. For schema compliance, pass when sample.output_text contains exactly one valid JSON object with all required fields, allowed labels, and value types, and no text outside the object.
