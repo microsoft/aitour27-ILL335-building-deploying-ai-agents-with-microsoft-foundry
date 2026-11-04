@@ -370,6 +370,30 @@ azd ai eval create caldova-generated-turn --path evals
 
 If this command fails, **stop before Step 8**. Do not use `azd up` or guess a service name as a workaround.
 
+**Recover an evaluator version mismatch**
+
+An error such as **version 3 on the project but 2 was recorded at the last deploy** means the published evaluator advanced since this local configuration last reconciled it, and the local definition differs. This is a conflict safeguard, not an agent deployment failure. Regeneration or a standalone `evaluator update` can leave the local and published definitions out of sync. A separate local retry folder does not isolate evaluator names in the same Foundry project.
+
+1. Keep the current dataset, evaluator JSON, `azure.eval.yaml`, and `azure.eval.lock`. Back up the local evaluator JSON in VS Code before making changes. Do not delete the lock file or a published evaluator version, rerun generation, or use a standalone `evaluator update` to bypass the conflict.
+2. Download the published version named in the error to a **new file**, not over the local rubric. For the example above, run:
+
+```powershell
+azd ai eval evaluator download caldova-quality-turn --version 3 --output-file evals\evaluators\caldova-quality-turn-project-v3.json
+```
+
+   Replace **3** and **v3** with the version in your error. If you used the Step 5 retry folder, use `evals-retry-1` instead of `evals` here and below. If the destination already exists, choose another unused filename; do not use `--force`. If your extension does not support `evaluator download`, stop and check the [evaluations extension guide](https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.evaluations) for compatibility guidance rather than guessing a replacement command.
+
+3. Compare the downloaded rubric with the local backup and confirm that the published dimensions and scoring rules are appropriate. In `evals/azure.eval.yaml`, find the `caldova-quality-turn` evaluator's catalog entry and change only its `source` to `evaluators/caldova-quality-turn-project-v3.json`, relative to that YAML file. Keep the evaluator name and evaluation references unchanged. Save the file. **Do not merge local rubric edits yet**: first reconcile the unchanged published definition.
+4. Repeat Step 7:
+
+```powershell
+azd ai eval create caldova-generated-turn --path evals
+```
+
+   **Expected result:** The published evaluator is reused and the local deployment record is reconciled; the named evaluation registers successfully. Only then proceed to Step 8. If the version advances again, or reconciliation still fails, stop and ask for help; do not repeatedly publish over it.
+
+5. If you still need an intentional local rubric correction, review it against the backup and apply it to the JSON file now named by `source`, only after item 4 succeeds. Repeat Step 7 to publish that intentional change before starting a run. Do not regenerate cases just to obtain failures: all-pass results are valid.
+
 ### Step 8: Start one evaluation run
 
 Run this command **once**:
@@ -473,6 +497,7 @@ You have generated and checked 15 turn-level cases, registered an evaluation, co
 | Missing `query`, or rows containing `simulation_configuration` | You generated conversation seeds. Stop; they are not turn-level input. Preserve them and repeat generation with the Step 4 settings and unused artifact names, or ask for help if those names are already taken. Do not add dummy queries or remove the agent target. |
 | `service name 'evals' doesn't exist` | Use the named `azd ai eval create` command in Step 7. The directory name is not the generated service name. |
 | Evaluation declared but not deployed | Complete Step 7 successfully before starting the run. Do not use a full `azd up` to bypass the error. |
+| Evaluator project version differs from the last deploy and the local definition does not match | Follow **Recover an evaluator version mismatch** in Step 7. Preserve the local rubric and lock file, download and review the published version, and reconcile it before reapplying intentional edits. |
 | Monitoring timed out or you lost the run ID | Use the command below to list existing runs, copy the correct ID, and repeat Step 9. Do not start a replacement run just to monitor progress. |
 
 ```powershell
