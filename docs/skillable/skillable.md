@@ -1476,12 +1476,20 @@ azd ai eval init `
 
 3. **Editor action: update the rubric.** The dataset supplies **query** and **expected_behavior**; **sample.output_text** supplies the agent's generated text to the evaluator's **response** input when the run executes.
 
-   - Press **Ctrl+P**, enter **evals\evaluators\caldova-quality-turn.json**, and press **Enter**.
+   - In **evals/azure.eval.yaml**, find the **caldova-quality-turn** evaluator's catalog entry and open the JSON file named by its **source**, relative to that YAML file. Normally this is **evals\evaluators\caldova-quality-turn.json**, but version-conflict recovery may have selected a different file.
    - The file has a **dimensions** array. Each object in it is one scoring dimension, with its own **id**, **description**, and **weight**.
-   - Press **Ctrl+F**, search for **"id": "sentiment_accuracy"**, then press **Esc**. Find the **description** in **that same object**; it may appear above the **id**.
+   - **Generated dimension IDs are not fixed.** Select dimensions by what their descriptions assess, using the table below. For sentiment, press **Ctrl+F**, search for **sentiment**, then press **Esc** and read the matching objects. Both **sentiment_accuracy** and **sentiment_label_accuracy** are possible IDs; neither is required. Find the **description** in the object that scores sentiment-label correctness; it may appear above the **id**.
    - Append the sentence below to the end of that description, **inside its existing double quotes**, with a space after the original text. Do not add a new property or paste the sentence outside the string.
 
-   **Before: example sentiment dimension**
+   | Dimension to find | Search text | Confirm from its description |
+   |-------------------|-------------|-----------------------------|
+   | Sentiment classification | **sentiment** | Scores whether the positive, neutral, negative, or mixed label matches the consumer's tone. |
+   | Regulated review routing | **review_category** or **routing** | Scores whether regulated signals receive the appropriate review category, independently of sentiment. |
+   | Evidence-based summary | **summary**, then **evidence** if needed | Scores whether the summary is supported by the feedback and avoids invented facts or unsupported medical conclusions. |
+
+   **If search shows no results:** Search the shorter terms above rather than an exact **id**, then inspect the descriptions in the **dimensions** array. Do not rename an ID to match this guide. If no dimension assesses one of these requirements, stop this optional exercise and ask your instructor to review the rubric; you can continue to **Part 7: Workshop summary and learning outcomes**. Do not edit an unrelated dimension or regenerate the dataset just to obtain matching IDs.
+
+   **Before: example sentiment dimension (illustrative ID; keep your actual ID)**
 
 ```json
 {
@@ -1505,7 +1513,7 @@ azd ai eval init `
 
    **Edit the JSON file, not PowerShell.** These examples show one object from the **dimensions** array, not the whole file. Keep your original description and append the sentence; **When ground_truth is supplied, compare the response against those human-reviewed expectations as well as this dimension's requirements.**, do not replace the entire file or array. Leave **id**, **weight**, **always_applicable**, other dimensions, and file-level settings such as **pass_threshold** unchanged.
 
-   Repeat the same description-only edit for the routing and summary dimensions, commonly named **review_category_routing** and **evidence_based_summary**. If generated IDs differ, find them by their descriptions of review routing and evidence-based summaries.
+   Repeat the same description-only edit for the routing and summary dimensions identified using the table. IDs such as **review_category_routing** and **evidence_based_summary** are examples, not required names. If **evidence_based_summary** is absent, use the dimension whose description assesses summary accuracy and grounding, regardless of its ID.
 
    Press **Ctrl+S**. The description must remain a valid JSON string; do not insert an unescaped line break inside the quotes. Visual word wrapping in the editor is fine.
 
