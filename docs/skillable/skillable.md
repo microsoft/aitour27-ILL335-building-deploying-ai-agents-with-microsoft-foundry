@@ -1307,11 +1307,28 @@ If monitoring times out, repeat only the **run show** command above with the sam
 ## Step 10: Review the scores and at least one result
 
 1. In the Foundry Toolkit, expand **My Resources > Evaluations**.
-2. Select your evaluation and the run you just completed.
+2. Select **caldova-generated-turn** and the run you just completed. If the view is empty or asks you to sign in, follow the recovery guidance below; you can also complete this step using the CLI.
 3. Review the scores for each criterion, not only the aggregate pass rate.
 4. Open a failed or borderline case and read both the assistant response (**sample.output_text**) and the evaluator's explanation. If all cases passed, inspect one passing case instead.
 
-You can also list failed cases in the terminal:
+**If Evaluations is empty or says you are not signed in**
+
+A successful CLI run does not sign the Foundry Toolkit into Azure. The extension's session or selected project may differ from the CLI's; an empty view alone does not mean the evaluation failed.
+
+1. In Foundry Toolkit, use **Set Foundry Project > Switch Project** to confirm the same pre-provisioned project used in Part B and Step 3. Do not select another subscription or create a project.
+2. If the Toolkit reports **You are not signed in to an Azure account**, use its **Sign in to Azure** action and repeat the Part 1 sign-in flow with the managed lab account. If prompted to sign in to all apps and websites, select **No, this app only**. A browser or CLI sign-in alone does not establish the extension's session. If the prompt keeps returning, contact your instructor rather than changing the lab identity.
+3. Reselect the existing project, close and reopen the **Evaluations** tab, and use **Refresh** if that action is available. Allow a short time for the view to synchronize, then reopen it. If it remains blank, save your files and run **Developer: Reload Window** from the Command Palette, then reopen Foundry Toolkit and the same project.
+4. If the UI still does not list the run, use the existing PowerShell terminal to inspect it without starting another run:
+
+```powershell
+azd ai eval run show --path evals --eval caldova-generated-turn --run $runId
+```
+
+   Use **--path evals-retry-1** if you followed Step 5 recovery. If you opened a new terminal, repeat Step 3 and restore the **same run ID** as in Step 9. You can open the **Portal** link printed by the CLI and sign in with the same lab account, or review results using the commands below.
+
+5. If the CLI shows the completed run and its results, continue with CLI review; Toolkit visibility is not required for this checkpoint. If the CLI also reports an authentication, permission, or project error, stop and share only the sanitized error with your instructor. Do not regenerate, re-register, redeploy, or start a replacement run just to refresh the UI.
+
+**CLI review (also valid when the Toolkit UI is unavailable):** List failed cases in the terminal:
 
 ```powershell
 azd ai eval run output list --path evals --eval caldova-generated-turn --run $runId --failed-only
@@ -1355,7 +1372,7 @@ Omit **--failed-only** if you want to list every case, including passes. Use eac
 
 !IMAGE[eval_results.png](instructions356855/eval_results.png)
 
-**Expected result:** You can identify a case, its response, its score, and the explanation for that score.
+**Expected result:** Using either the Toolkit/portal or the CLI, you can identify a case, its response, its score, and the explanation for that score. An empty Toolkit view does not block completion when the CLI results are available.
 
 ## Part C checkpoint
 
@@ -1376,6 +1393,7 @@ You have generated and checked 15 turn-level cases, registered an evaluation, co
 | **service name 'evals' doesn't exist** | Use the named **azd ai eval create** command in Step 7. The directory name is not the generated service name. |
 | Evaluation declared but not deployed | Complete Step 7 successfully before starting the run. Do not use a full **azd up** to bypass the error. |
 | Evaluator project version differs from the last deploy and the local definition does not match | Follow **Recover an evaluator version mismatch** in Step 7. Preserve the local rubric and lock file, download and review the published version, and reconcile it before reapplying intentional edits. |
+| **My Resources > Evaluations** is empty or asks for Azure sign-in | Follow Step 10's UI recovery: check the Toolkit's lab account and existing project, refresh/reopen the view, and reload VS Code if needed. Review the existing run through the CLI if the UI remains unavailable; do not start a new run. |
 | Monitoring timed out or you lost the run ID | Use the command below to list existing runs, copy the correct ID, and repeat Step 9. Do not start a replacement run just to monitor progress. |
 
 ```powershell
